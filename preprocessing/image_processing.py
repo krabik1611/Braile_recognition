@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
+from skimage import morphology
 
 
 class ImageProcessing():
@@ -12,34 +13,26 @@ class ImageProcessing():
 		
 	def imageProcessing(self):
 		'''main processing function'''
-		img = cv.imread(img_path, cv.IMREAD_GRAYSCALE) #read image
+		img = cv.imread(self.file_path, cv.IMREAD_GRAYSCALE) #read image
 		img = cv.medianBlur(img,3)
 		th3 = cv.adaptiveThreshold(img,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
 					cv.THRESH_BINARY,11,2)
 		
 		self.images =  [img,th3]
 		self.mainImage = th3
-	def showPlot(self):
-		'''visualization changes'''
-		titles = ['Original Image', 'Adaptive Gaussian Thresholding'] #titles for plot
-		for i in range(2):
-			plt.subplot(1,2,i+1)
-			plt.imshow(self.images[i],'gray')
-			plt.title(titles[i])
-			plt.xticks([]),plt.yticks([])
 
+	def upgradeImage(self):
+		self.upImage = morphology.remove_small_holes(np.array(self.mainImage,bool),10)
+		plt.subplot(1,2,1),plt.imshow(self.mainImage)
+		plt.subplot(1,2,2), plt.imshow(self.upImage)
 		plt.show()
 		
-	def getGaussianImage(self):
-		'''get processing image'''
-		return self.mainImage
+		return self.upImage
+	def saveImage(self,save_path):
+		self.upgradeImage()
 		
-	def saveGaussianImage(self,save_path):
-		'''save image'''
-		plt.imshow(self.mainImage)
-		cv.imwrite(save_path,self.mainImage)
+		cv.imwrite(save_path,self.upImage)
+		
+a = ImageProcessing('../dataFiles/origImage/2.jpg')
+a.saveImage('../dataFiles/Image/2.jpg')
 
-img_path = "test/1.jpg"
-
-obj = ImageProcessing(img_path)
-obj.showPlot()
