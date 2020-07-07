@@ -42,5 +42,5 @@ class ImageProcessing():
 		plt.subplot(1,3,3),plt.imshow(mod2,'gray')
 		plt.title('mod2'), plt.xticks([]),plt.yticks([])
 		plt.show()
-image = ImageProcessing('../dataFiles/origImage/1.jpg')
+image = ImageProcessing('../dataFiles/origImage/2.jpg')
 image.test()
