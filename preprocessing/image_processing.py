@@ -22,7 +22,7 @@ class ImageProcessing():
 		self.showImage()
 	def upgradeImage(self):
 		'''upgrage image 2 times'''
-		self.image = cv.GaussianBlur(self.oImage, (5, 5), 0)
+		#self.image = cv.GaussianBlur(self.oImage, (5, 5), 0)
 		self.Image = cv.Canny(self.oImage, 30, 70)
 		self.inv()
 
