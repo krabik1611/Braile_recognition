@@ -1,7 +1,6 @@
 import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
-from skimage import morphology
 
 
 class ImageProcessing():
@@ -10,6 +9,7 @@ class ImageProcessing():
 		'''define file path and initialize proprities'''
 		self.file_path = file_path
 		self.imageProcessing() # start processing image after create object
+		self.upgradeImage()
 
 	def imageProcessing(self):
 		'''main processing function'''
@@ -22,13 +22,16 @@ class ImageProcessing():
 		self.showImage()
 	def upgradeImage(self):
 		'''upgrage image 2 times'''
-		image = cv.Canny(self.oImage, 10, 100)
-		# self.inv()
-		kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
-		image = cv.morphologyEx(image, cv.MORPH_CLOSE, kernel)
-		cnts = cv.findContours(image.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE )[1]
-		self.Image = cv.drawContours(self.oImage,cnts,(127,127,127),3)
+		self.image = cv.GaussianBlur(self.oImage, (5, 5), 0)
+		self.Image = cv.Canny(self.oImage, 30, 70)
+		self.inv()
 
+		def getPic(self,key):
+			self.upgradeImage()
+			pic = {"dark":self.wImage,
+					"orig":self.oImage,
+					"white":self.wImage}
+			return pic[key]
 	def inv(self):
 		'''make inverse pic'''
 		_,self.wImage = cv.threshold(self.Image,127,255,cv.THRESH_BINARY_INV)
@@ -46,5 +49,3 @@ class ImageProcessing():
 		# plt.subplot(1,3,3),plt.imshow(mod2,'gray')
 		# plt.title('mod2'), plt.xticks([]),plt.yticks([])
 		plt.show()
-image = ImageProcessing('../dataFiles/origImage/2.jpg')
-image.test()
