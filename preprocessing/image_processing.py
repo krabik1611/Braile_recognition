@@ -35,7 +35,7 @@ class ImageProcessing():
 	def inv(self):
 		'''make inverse pic'''
 		_,self.wImage = cv.threshold(self.Image,127,255,cv.THRESH_BINARY_INV)
-
+		return self.wImage
 
 	def showImage(self):
 		'''show changes in one layout'''
