@@ -33,6 +33,8 @@ class Get_cont(im.ImageProcessing):
 
     def test_method(self):
         def drawCont(img,contours):
+
+
             for cont in contours:
                 # rect = cv.minAreaRect(cont)
                 # box = cv.boxPoints(rect)
@@ -42,18 +44,36 @@ class Get_cont(im.ImageProcessing):
                 x0,y0,x1,y1 = cont
                 x1+=x0
                 y1+=y0
-                cv.rectangle(img, (x0,y0), (x1,y1), (255, 255, 255), 2)
+                cv.rectangle(img, (x0,y0), (x1,y1), (255, 255, 255), 3)
             return img
-        def drawLine(img,contours):
-            y,x = img.shape
-            print(x,y)
-            plt.imshow(img)
-            plt.show()
-            return 0
-            # for n in range(2):
-            #     for cont in contours:
-            #         if n==0:
+        def drawLine(self,oimg,contours):
+            y,x = oimg.shape
+            img = np.zeros((y,x,3),np.uint8)
 
+
+
+            plt.show()
+
+            sredY = self.sredY
+
+
+            for cont in contours:
+
+                x0,y0,x1,y1 = cont
+
+                x1+=x0
+                y1+=y0
+
+
+                # cv.line(img,(0,y0),(x,y0),(255,255,255),1)
+
+                cv.line(img,(0,y1+5),(x,y1+5),(255,255,255),2)
+                # cv.line(img,(0,y1),(x,y1),(255,255,255),2)
+
+            kernel = np.ones((5,5),np.uint8)
+            img = cv.erode(img,kernel,iterations=1)
+
+            return img
 
 
 
@@ -82,7 +102,7 @@ class Get_cont(im.ImageProcessing):
         contours0, hierarchy = cv.findContours( gradient.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         # lines = cv.HoughLines(edges,1,np.pi/180,200)
         # for line in lines:
-        sredY= 0
+        self.sredY= 0
         count = 0
         contours1 = []
         lines = []
@@ -99,21 +119,31 @@ class Get_cont(im.ImageProcessing):
                 0-----(x1,y1)
                 '''
                 if n==0:
-                    sredY+= y1/len(contours0)
+                    self.sredY+= y1/len(contours0)
                 else:
-                    if sredY < y1:
-                        contours1.append((x0,y0,x1,y1))
+                    if self.sredY < y1:
+                        if x0<0:
+                            x0=0
+                        if x1<0:
+                            x1=0
+                        if y0<0:
+                            y0=0
+                        if y1<0:
+                            y1=0
+                        contours1.append([x0,y0,x1,y1])
 
 
-            # print(x,y,w,h)
 
-        # edges =drawLine(edges,contours1)
-        edges = drawCont(edges,contours1)
+        contours1.sort()
+        edges =drawLine(self,edges,contours1)
 
+
+        # edges = drawCont(edges,contours1[:int(len(contours1)/3)])
+        #
         plt.imshow(edges)
         plt.show()
 
 
 
-image = Get_cont('../dataFiles/origImage/perfect1.jpg')
+image = Get_cont('../dataFiles/origImage/perfect2.jpg')
 image.test_method()
