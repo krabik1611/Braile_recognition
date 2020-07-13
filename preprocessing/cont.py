@@ -46,34 +46,49 @@ class Get_cont(im.ImageProcessing):
             contours.sort(key=lambda i: i[1])
             '''define count variables'''
             sredLine1,sredLine2,num=0,0,0
-
+            min,max = 0,0
             '''find average value line in one string and add in list'''
             for i in range(len(contours)-1):
-                if contours[i+1][1] -contours[i][1] < 30:
+                # if contours[i+1][1] -contours[i][1] < 30:
+                #     '''find count line and it value'''
+                #     num+=1
+                #     sredLine1+=contours[i][1]
+                #     sredLine2+= contours[i][3]
+                # else:
+                #     '''find average value'''
+                #     sredLine1 = int(sredLine1/num)
+                #     sredLine2 = int(sredLine2/num)
+                #     num = 0
+                #
+                #     lines.append([sredLine1,sredLine2+sredLine1])
+                if contours[i+1][1] -contours[i][1] < 20:
                     '''find count line and it value'''
-                    num+=1
-                    sredLine1+=contours[i][1]
-                    sredLine2+= contours[i][3]
+                    if min < contours[i][1] :
+                        min = contours[i][1]
                 else:
                     '''find average value'''
-                    sredLine1 = int(sredLine1/num)
-                    sredLine2 = int(sredLine2/num)
-                    num = 0
 
-                    lines.append([sredLine1,sredLine2+sredLine1])
+                    max = contours[i-1][3] + contours[i][1]
+                    lines.append([min,max])
+
             '''sort by Y coordinate'''
             lines.sort(key=lambda i:i[1])
+            images = []
             for line in lines:
                 '''draw up and down line in every string'''
                 y0,y1 = line
 
-                cv.line(img,(0,y0-10),(x,y0-10),(255,255,255),2)
-                cv.line(img,(0,y1+10),(x,y1+10),(255,255,255),2)
-
-
-
-
-            return img
+                # cv.line(img,(0,y0),(x,y0),(0,0,0),2)
+                # cv.line(img,(0,y1),(x,y1),(0,0,0),2)
+                images.append(img[y0:y1,0:x])
+            row = len(images)//2 + 1
+            column =2
+            # print(len(images))
+            lenght = len(images)
+            for n in range(1,lenght):
+                plt.subplot(row,column,n),plt.imshow(cv.cvtColor(images[n],cv.COLOR_BGR2RGB))
+                plt.title(n), plt.xticks([]),plt.yticks([])
+            plt.show()
 
 
 
@@ -131,13 +146,14 @@ class Get_cont(im.ImageProcessing):
                             y1=0
                         contours1.append([x0,y0,x1,y1])
 
-        edges =drawLine(self,edges,contours1)
+        drawLine(self, self.oImage, contours1)
+        # edges =cv.cvtColor(drawLine(self,self.oImage,contours1),cv.COLOR_BGR2RGB)
 
 
         # edges = drawCont(edges,contours1)
         #
-        plt.imshow(edges)
-        plt.show()
+        # plt.imshow(edges)
+        # plt.show()
 
 
 
