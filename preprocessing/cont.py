@@ -47,8 +47,9 @@ class Get_cont(im.ImageProcessing):
             '''define count variables'''
             sredLine1,sredLine2,num=0,0,0
             min,max = 0,0
-            '''find average value line in one string and add in list'''
+
             for i in range(len(contours)-1):
+                # '''find average value line in one string and add in list'''
                 # if contours[i+1][1] -contours[i][1] < 30:
                 #     '''find count line and it value'''
                 #     num+=1
@@ -61,6 +62,8 @@ class Get_cont(im.ImageProcessing):
                 #     num = 0
                 #
                 #     lines.append([sredLine1,sredLine2+sredLine1])
+                '''find up and down border string of max or min value
+                    max for down and min for up'''
                 if contours[i+1][1] -contours[i][1] < 20:
                     '''find count line and it value'''
                     if min < contours[i][1] :
@@ -73,22 +76,21 @@ class Get_cont(im.ImageProcessing):
 
             '''sort by Y coordinate'''
             lines.sort(key=lambda i:i[1])
-            images = []
+            images = [] # list of slice string
             for line in lines:
                 '''draw up and down line in every string'''
                 y0,y1 = line
-
                 # cv.line(img,(0,y0),(x,y0),(0,0,0),2)
                 # cv.line(img,(0,y1),(x,y1),(0,0,0),2)
                 images.append(img[y0:y1,0:x])
-            row = len(images)//2 + 1
-            column =2
-            # print(len(images))
-            lenght = len(images)
-            for n in range(1,lenght):
-                plt.subplot(row,column,n),plt.imshow(cv.cvtColor(images[n],cv.COLOR_BGR2RGB))
-                plt.title(n), plt.xticks([]),plt.yticks([])
-            plt.show()
+            '''visualization result'''
+            # row = len(images)//2 + 1
+            # column =2
+            # lenght = len(images)
+            # for n in range(1,lenght):
+            #     plt.subplot(row,column,n),plt.imshow(cv.cvtColor(images[n],cv.COLOR_BGR2RGB))
+            #     plt.title(n), plt.xticks([]),plt.yticks([])
+            # plt.show()
 
 
 
