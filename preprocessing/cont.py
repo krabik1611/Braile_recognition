@@ -33,45 +33,45 @@ class Get_cont(im.ImageProcessing):
 
     def test_method(self):
         def drawCont(img,contours):
-
-
             for cont in contours:
-                # rect = cv.minAreaRect(cont)
-                # box = cv.boxPoints(rect)
-                # (x0,y0,x1,y1) = cv.boundingRect(box) #find two dot for rectagle
-                # x1+=x0
-                # y1+=y0
+                '''func for draw all rectangle'''
                 x0,y0,x1,y1 = cont
                 x1+=x0
                 y1+=y0
                 cv.rectangle(img, (x0,y0), (x1,y1), (255, 255, 255), 3)
             return img
-        def drawLine(self,oimg,contours):
-            y,x = oimg.shape
-            img = np.zeros((y,x,3),np.uint8)
+        def drawLine(self,img,contours):
+            y,x = img.shape
+            lines =[]
+            contours.sort(key=lambda i: i[1])
+            '''define count variables'''
+            sredLine1,sredLine2,num=0,0,0
+
+            '''find average value line in one string and add in list'''
+            for i in range(len(contours)-1):
+                if contours[i+1][1] -contours[i][1] < 30:
+                    '''find count line and it value'''
+                    num+=1
+                    sredLine1+=contours[i][1]
+                    sredLine2+= contours[i][3]
+                else:
+                    '''find average value'''
+                    sredLine1 = int(sredLine1/num)
+                    sredLine2 = int(sredLine2/num)
+                    num = 0
+
+                    lines.append([sredLine1,sredLine2+sredLine1])
+            '''sort by Y coordinate'''
+            lines.sort(key=lambda i:i[1])
+            for line in lines:
+                '''draw up and down line in every string'''
+                y0,y1 = line
+
+                cv.line(img,(0,y0-10),(x,y0-10),(255,255,255),2)
+                cv.line(img,(0,y1+10),(x,y1+10),(255,255,255),2)
 
 
 
-            plt.show()
-
-            sredY = self.sredY
-
-
-            for cont in contours:
-
-                x0,y0,x1,y1 = cont
-
-                x1+=x0
-                y1+=y0
-
-
-                # cv.line(img,(0,y0),(x,y0),(255,255,255),1)
-
-                cv.line(img,(0,y1+5),(x,y1+5),(255,255,255),2)
-                # cv.line(img,(0,y1),(x,y1),(255,255,255),2)
-
-            kernel = np.ones((5,5),np.uint8)
-            img = cv.erode(img,kernel,iterations=1)
 
             return img
 
@@ -105,7 +105,6 @@ class Get_cont(im.ImageProcessing):
         self.sredY= 0
         count = 0
         contours1 = []
-        lines = []
         y,x = edges.shape
 
         for n in range(2):
@@ -132,18 +131,15 @@ class Get_cont(im.ImageProcessing):
                             y1=0
                         contours1.append([x0,y0,x1,y1])
 
-
-
-        contours1.sort()
         edges =drawLine(self,edges,contours1)
 
 
-        # edges = drawCont(edges,contours1[:int(len(contours1)/3)])
+        # edges = drawCont(edges,contours1)
         #
         plt.imshow(edges)
         plt.show()
 
 
 
-image = Get_cont('../dataFiles/origImage/perfect2.jpg')
+image = Get_cont('../dataFiles/origImage/perfect3.jpg')
 image.test_method()
