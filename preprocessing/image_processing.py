@@ -8,44 +8,98 @@ class ImageProcessing():
 	def __init__(self,file_path):
 		'''define file path and initialize proprities'''
 		self.file_path = file_path
-		self.imageProcessing() # start processing image after create object
+		self.readImage() # start processing image after create object
 		self.upgradeImage()
 
-	def imageProcessing(self):
-		'''main processing function'''
+	def readImage(self):
+		'''read image'''
 		self.oImage = cv.imread(self.file_path, cv.IMREAD_GRAYSCALE) #read image
 		self.oImage = cv.GaussianBlur(self.oImage, (5, 5), 0) # delete trash
 
-	def test(self):
-		'''func for test launch'''
-		self.upgradeImage()
-		self.showImage()
 	def upgradeImage(self):
-		'''upgrage image 2 times'''
-		#self.image = cv.GaussianBlur(self.oImage, (5, 5), 0)
-		self.Image = cv.Canny(self.oImage, 30, 70)
-		self.inv()
+		'''preprocessing image'''
+		image = cv.GaussianBlur(self.oImage, (5,5), 0)
+		image = cv.Canny(image,20,50)
 
-		def getPic(self,key):
-			self.upgradeImage()
-			pic = {"dark":self.wImage,
-					"orig":self.oImage,
-					"white":self.wImage}
-			return pic[key]
-	def inv(self):
-		'''make inverse pic'''
-		_,self.wImage = cv.threshold(self.Image,127,255,cv.THRESH_BINARY_INV)
-		return self.wImage
+		kernel = np.ones((5,5),np.uint8)
 
-	def showImage(self):
-		'''show changes in one layout'''
-		orig = cv.cvtColor(self.oImage,cv.COLOR_BGR2RGB)
-		mod = cv.cvtColor(self.Image, cv.COLOR_BGR2RGB)
-		# mod2 = self.wImage #cv.cvtColor(self.wImage,cv.COLOR_BGR2RGB)
-		plt.subplot(1,3,1),plt.imshow(orig)
-		plt.title('Orig'), plt.xticks([]),plt.yticks([])
-		plt.subplot(1,3,2),plt.imshow(mod)
-		plt.title('mod1'), plt.xticks([]),plt.yticks([])
-		# plt.subplot(1,3,3),plt.imshow(mod2,'gray')
-		# plt.title('mod2'), plt.xticks([]),plt.yticks([])
+		dilation = cv.dilate(image.copy(),kernel,iterations=3)
+		self.Image = cv.morphologyEx(dilation, cv.MORPH_GRADIENT, kernel) # gradient
+		# self.Image = cv.Canny(gradient,20,50) # maybe delete!!!!
+		return image
+
+	def getContours(self):
+		contours0, hierarchy = cv.findContours( self.Image.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+		sredY= 0
+		count = 0
+		contours1 = []
+		y,x = self.Image.shape
+		for n in range(2):
+			for cont in contours0:
+				rect = cv.minAreaRect(cont)
+				box = cv.boxPoints(rect)
+				(x0,y0,x1,y1) = cv.boundingRect(box) #find two dot for rectagle
+				'''
+				(x0,y1)----0
+				|          |
+				0-----(x1,y1)
+				'''
+				if n==0:
+					sredY+= y1/len(contours0)
+				else:
+					if sredY < y1:
+						if x0<0:
+							x0=0
+						if x1<0:
+							x1=0
+						if y0<0:
+							y0=0
+						if y1<0:
+							y1=0
+						contours1.append([x0,y0,x1,y1])
+		self.contours = contours1
+		return contours1
+
+	def getLine(self):
+		img = self.oImage
+		y,x = img.shape # image size
+		contours = self.contours # get contours
+		lines = []
+		contours.sort(key=lambda i: i[1]) # cort for better find line coordinates
+		min,max = 0,0
+		for i in range(len(contours)-1):
+			'''find up and down border string of max or min value
+                max for down and min for up'''
+			if contours[i+1][1] -contours[i][1] < 20:
+				'''find count line and it value'''
+				if min < contours[i][1] :
+					min = contours[i][1] # find up line border
+			else:
+				'''find average value'''
+				max = contours[i-1][3] + contours[i][1] # find down line border
+				lines.append([min,max])
+		images = [] # list of slice string
+		for line in lines:
+			'''draw up and down line in every string'''
+			y0,y1 = line # get up and down border
+            # cv.line(img,(0,y0),(x,y0),(0,0,0),2)
+            # cv.line(img,(0,y1),(x,y1),(0,0,0),2)
+			images.append(img[y0:y1,0:x])
+		self.Lines = images
+		return images
+
+
+	def visualizationString(self):
+		'''func for show result'''
+		lines = self.Lines
+		row = len(lines)//2 + 1
+		column =2
+		lenght = len(lines)
+		for n in range(1,lenght):
+			plt.subplot(row,column,n),plt.imshow(cv.cvtColor(lines[n],cv.COLOR_BGR2RGB))
+			plt.title(n), plt.xticks([]),plt.yticks([])
 		plt.show()
+obj = ImageProcessing('../dataFiles/origImage/perfect2.jpg')
+obj.getContours()
+obj.getLine()
+obj.visualizationString()
