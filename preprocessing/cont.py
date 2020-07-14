@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 import image_processing as im
+from os import system
 
 class Get_cont(im.ImageProcessing):
     def __init__(self,file_path):
@@ -45,7 +46,6 @@ class Get_cont(im.ImageProcessing):
             lines =[]
             contours.sort(key=lambda i: i[1])
             '''define count variables'''
-            sredLine1,sredLine2,num=0,0,0
             min,max = 0,0
 
             for i in range(len(contours)-1):
@@ -75,7 +75,7 @@ class Get_cont(im.ImageProcessing):
                     lines.append([min,max])
 
             '''sort by Y coordinate'''
-            lines.sort(key=lambda i:i[1])
+            # lines.sort(key=lambda i:i[1])
             images = [] # list of slice string
             for line in lines:
                 '''draw up and down line in every string'''
@@ -84,14 +84,18 @@ class Get_cont(im.ImageProcessing):
                 # cv.line(img,(0,y1),(x,y1),(0,0,0),2)
                 images.append(img[y0:y1,0:x])
             '''visualization result'''
-            # row = len(images)//2 + 1
-            # column =2
-            # lenght = len(images)
-            # for n in range(1,lenght):
-            #     plt.subplot(row,column,n),plt.imshow(cv.cvtColor(images[n],cv.COLOR_BGR2RGB))
-            #     plt.title(n), plt.xticks([]),plt.yticks([])
+            row = len(images)//2 + 1
+            column =2
+            lenght = len(images)
+            # print(len(lines))
+            for n in range(1,lenght):
+                plt.subplot(row,column,n),plt.imshow(cv.cvtColor(images[n],cv.COLOR_BGR2RGB))
+                plt.title(n), plt.xticks([]),plt.yticks([])
+            plt.show()
+            # print(len(images))
+            # # self.saveString(images)
+            # plt.imshow(img)
             # plt.show()
-
 
 
 
@@ -110,13 +114,13 @@ class Get_cont(im.ImageProcessing):
 
         edges = cv.Canny(gradient,20,50)
 
-        '''show edges'''
+        # '''show edges'''
         # plt.imshow(cv.cvtColor(edges,cv.COLOR_BGR2RGB))
         # plt.show()
 
 
 
-        contours0, hierarchy = cv.findContours( gradient.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        contours0, hierarchy = cv.findContours( edges.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         # lines = cv.HoughLines(edges,1,np.pi/180,200)
         # for line in lines:
         self.sredY= 0
@@ -156,8 +160,18 @@ class Get_cont(im.ImageProcessing):
         #
         # plt.imshow(edges)
         # plt.show()
+    def saveString(self,strings):
+        file_save = self.file_path[:-4]
+        system('mkdir %s' %file_save)
+        count = 1
+        for string in strings:
+            file_save = self.file_path[:-4] + "/%i.jpg" %count
+            print(file_save)
+            cv.imwrite(file_save,string)
+            count+=1
 
 
 
-image = Get_cont('../dataFiles/origImage/perfect3.jpg')
-image.test_method()
+
+image1 = Get_cont('../dataFiles/origImage/perfect3.jpg')
+image1.test_method()()
