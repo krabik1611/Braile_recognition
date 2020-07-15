@@ -33,14 +33,7 @@ class Get_cont(im.ImageProcessing):
 
 
     def test_method(self):
-        def drawCont(img,contours):
-            for cont in contours:
-                '''func for draw all rectangle'''
-                x0,y0,x1,y1 = cont
-                x1+=x0
-                y1+=y0
-                cv.rectangle(img, (x0,y0), (x1,y1), (255, 255, 255), 3)
-            return img
+        
         def drawLine(self,img,contours):
             y,x = img.shape
             lines =[]
@@ -152,14 +145,14 @@ class Get_cont(im.ImageProcessing):
                             y1=0
                         contours1.append([x0,y0,x1,y1])
 
-        drawLine(self, self.oImage, contours1)
+        edges = drawCont(edges,contours1)
         # edges =cv.cvtColor(drawLine(self,self.oImage,contours1),cv.COLOR_BGR2RGB)
 
 
         # edges = drawCont(edges,contours1)
         #
-        # plt.imshow(edges)
-        # plt.show()
+        plt.imshow(edges)
+        plt.show()
     def saveString(self,strings):
         file_save = self.file_path[:-4]
         system('mkdir %s' %file_save)
