@@ -1,0 +1,17 @@
+file for save useful links
+
+############################
+######Шпаргалка OpenCV######
+############################
+https://tproger.ru/translations/opencv-python-guide/
+
+####################################
+######Морфологические операции######
+####################################
+https://docs.opencv.org/trunk/d9/d61/tutorial_py_morphological_ops.html
+
+
+###############################
+######Нахождение контуров######
+###############################
+https://robotclass.ru/tutorials/opencv-python-find-contours/
