@@ -58,7 +58,24 @@ class ImageProcessing():
 							y1=0
 						contours1.append([x0,y0,x1,y1])
 		self.contours = contours1
+		# print(len(contours1))
 		return contours1
+
+	def getCanny(self):
+
+		img = self.oImage
+		img = cv.GaussianBlur(img, (5, 5), 0)
+		img = cv.Canny(img,20,70)
+
+		kernel = np.ones((5,5),np.uint8)
+		edges = cv.dilate(img,kernel,iterations = 1)
+		closing = cv.morphologyEx(edges, cv.MORPH_CLOSE, kernel,iterations=2)
+		image = cv.morphologyEx(closing, cv.MORPH_OPEN, kernel)
+
+		self.Image = image
+		# img = cv.cvtColor(closing,cv.COLOR_BGR2RGB)
+		# plt.imshow(img)
+		# plt.show()
 
 	def getLine(self):
 		img = self.oImage
@@ -77,7 +94,7 @@ class ImageProcessing():
 			else:
 				'''find average value'''
 				max = contours[i-1][3] + contours[i][1] # find down line border
-				lines.append([min,max])
+				lines.append([min-5,max+5])
 		images = [] # list of slice string
 		for line in lines:
 			'''draw up and down line in every string'''
@@ -87,7 +104,18 @@ class ImageProcessing():
 			images.append(img[y0:y1,0:x])
 		self.Lines = images
 		return images
+	def drawCont(self):
+		img = self.Image
+		contours = self.contours
+		# print(len(contours))
+		for cont in contours:
+			'''func for draw all rectangle'''
+			x0,y0,x1,y1 = cont
+			x1+=x0
+			y1+=y0
+			cv.rectangle(img, (x0,y0), (x1,y1), (43, 43, 125), 3)
 
+		return cv.cvtColor(img,cv.COLOR_BGR2RGB)
 
 	def visualizationString(self):
 		'''func for show result'''
@@ -100,6 +128,10 @@ class ImageProcessing():
 			plt.title(n), plt.xticks([]),plt.yticks([])
 		plt.show()
 obj = ImageProcessing('../dataFiles/origImage/perfect2.jpg')
+obj.getCanny()
 obj.getContours()
 obj.getLine()
 obj.visualizationString()
+img = obj.drawCont()
+plt.imshow(img)
+plt.show()
