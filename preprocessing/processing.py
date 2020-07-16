@@ -80,6 +80,7 @@ def drawRect(img,contours):
     return img
 
 def drawLine(img,contours):
+    '''draw line in image'''
     img = img.copy()
     y,x = img.shape
     for cont in contours:
@@ -123,6 +124,7 @@ def getCont(img):
     return contour
 
 def getString(img,contours):
+    '''return slice image'''
     img = img.copy()
     _,x = img.shape
     lines = []
