@@ -79,6 +79,14 @@ def drawRect(img,contours):
         cv.rectangle(img,(x0,y0),(x1,y1),(255,255,255),2)
     return img
 
+def drawLine(img,contours):
+    img = img.copy()
+    y,x = img.shape
+    for cont in contours:
+        _, y0, _, y1 = cont
+        cv.line(img,(0,y0),(x,y0),(0,0,0),2)
+        cv.line(img,(0,y1),(x,y1),(0,0,0),2)
+    return cv.cvtColor(img,cv.COLOR_BGR2RGB)
 def cont(img):
     '''draw contour in image'''
     img = img.copy()
@@ -97,8 +105,8 @@ def getCont(img):
             rect = cv.minAreaRect(cont)
             box = cv.boxPoints(rect)
             x0,y0,x1,y1 = cv.boundingRect(box)
-            y0-=5
-            y1+=5
+            # y0-=5
+            # y1+=5
             if n==0:
                 sredY += y1/len(contours)
             else:
@@ -123,10 +131,13 @@ def getString(img,contours):
         lines.append(img[y0:y1,0:x])
     return lines
 
-path = '../dataFiles/origImage/perfect3.jpg'
-img = readImage(path)
-imgMod = imgModify(img, 'open')
-contour = getCont(imgMod)
-lines = getString(img, contour)
-
-saveString(path,lines)
+def allAction(path):
+    '''func for run all action'''
+    img = readImage(path)
+    imgMod = imgModify(img, 'open')
+    contour = getCont(imgMod)
+    # lines = getString(img, contour)
+    img = drawLine(img, contour)
+    showImage(img)
+    # saveString(path,lines)
+allAction('../dataFiles/origImage/perfect2.jpg')
