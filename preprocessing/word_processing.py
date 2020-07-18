@@ -3,7 +3,7 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 
-path = '../dataFiles/origImage/perfect1.jpg'
+path = '../dataFiles/origImage/perfect3.jpg'
 img = readImage(path)
 imgMod = imgModify(img, 'open')
 contour = getCont(imgMod)
@@ -23,6 +23,7 @@ for line in lines:
     dilate = cv.dilate(image.copy(),kernel,iterations=1)
     kernel = np.ones((10,10),np.uint8)
     image = cv.morphologyEx(dilate,cv.MORPH_CLOSE,kernel,iterations=1)
+
 
 
     contours, hierarchy = cv.findContours(image.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)

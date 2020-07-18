@@ -96,20 +96,33 @@ def cont(img):
     cv.drawContours(img, contours, -1, (255, 255, 255), 2, cv.LINE_AA, hierarchy, 1)
     return img
 
-
 def getCont(img):
     '''find and return big contour'''
-    contours, hierarchy = cv.findContours( img.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv.findContours( img.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     contour = []
+    sredY = 0
     for n in range(2):
         for cont in contours:
             rect = cv.minAreaRect(cont)
             box = cv.boxPoints(rect)
             x0,y0,x1,y1 = cv.boundingRect(box)
-            # cv.rectangle(img,(x0,y0),(x1+x0,y0+y1),(255,255,255),2)
-
-            contour.append([x0,y0-5,x1,y1+y0+5])
+            # y0-=5
+            # y1+=5
+            if n==0:
+                sredY += y1/len(contours)
+            else:
+                if sredY<y1:
+                    if x0<0:
+                        x0=0
+                    if x1<0:
+                        x1=0
+                    if y0<0:
+                        y0=0
+                    if y1<0:
+                        y1=0
+                    contour.append([x0,y0-5,x1,y1+y0+5])
     return contour
+
 
 def getString(img,contours):
     '''return slice image'''
