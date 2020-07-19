@@ -15,6 +15,7 @@ lines = getString(img, contour)
 images = []
 images1 = []
 vert = []
+coordsX = []
 for line in lines:
     line = line.copy()
     y,x = line.shape
@@ -46,18 +47,18 @@ for line in lines:
     contours, hierarchy = cv.findContours(close.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     end  = 0
     check = 0
-    print("\n")
+
     for cont in contours:
         rect = cv.minAreaRect(cont)
         box = cv.boxPoints(rect)
         x0,y0,x1,y1 = cv.boundingRect(box)
         cv.line(line,(x0,0),(x0,y),(255,255,255),2)
         cv.line(line,(x0+x1,0),(x0+x1,y),(255,255,255),2)
-        if check:
-            print(end - x0,end=' ')
-            end = x0
-        else:
-            check = 1
-            end = x0
+        coordsX.append([x0,x0+x1])
+
     vert.append(line)
 showImage(vert)
+
+for coords in coordsX:
+    x0,x1 = coords
+    print(x0,x1)
