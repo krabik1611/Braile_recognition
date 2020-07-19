@@ -20,7 +20,7 @@ def getClose(line):
 
     dilate = cv.dilate(line,kernel_dilate,iterations=1)
 
-    kernel_close = np.ones((100,6),np.uint8)
+    kernel_close = np.ones((100,5),np.uint8)
 
     close = cv.morphologyEx(line,cv.MORPH_CLOSE, kernel_close,iterations=1)
     # image.append(close)

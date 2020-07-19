@@ -74,9 +74,16 @@ def imgModify(img,key):
 def drawRect(img,contours):
     '''draw rect in any image'''
     img = img.copy()
+    check = 0
     for cont in contours:
+
         x0,y0,x1,y1 = cont
-        cv.rectangle(img,(x0,y0),(x1,y1),(255,255,255),2)
+        if not check:
+
+            cv.rectangle(img,(x0,y0),(x1,y1),(0,0,0),2)
+            check = 1
+        else:
+            cv.rectangle(img,(x0,y0),(x1,y1),(255,255,255),2)
     return img
 
 def drawLine(img,contours):
@@ -121,7 +128,7 @@ def getCont(img):
                     if y1<0:
                         y1=0
                     contour.append([x0,y0-5,x1,y1+y0+5])
-    return contour
+    return contour[::-1]
 
 
 def getString(img,contours):
@@ -141,9 +148,10 @@ def allAction(path):
     img = readImage(path)
     imgMod = imgModify(img, 'open')
     contour = getCont(imgMod)
-    lines = getString(img, contour)
+    # lines = getString(img, contour)
+    lines = drawRect(img, contour)
     showImage(lines)
 
 
 
-# allAction('../dataFiles/origImage/perfect1.jpg')
+# allAction('../dataFiles/origImage/perfect2.jpg')

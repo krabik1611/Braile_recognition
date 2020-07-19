@@ -22,7 +22,7 @@ for line in lines:
     image = imgModify(line,"edges")
 
     # dilate = cv.morphologyEx(image,cv.MORPH_)
-    kernel = np.ones((20,25),np.uint8)
+    kernel = np.ones((20,20),np.uint8)
     dilate = cv.dilate(image.copy(),kernel,iterations=1)
     kernel = np.ones((10,10),np.uint8)
     image = cv.morphologyEx(dilate,cv.MORPH_CLOSE,kernel,iterations=1)
@@ -30,35 +30,42 @@ for line in lines:
 
 
     contours, hierarchy = cv.findContours(image.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
+    contours = contours[::-1]
+    check = 0
     for cont in contours:
         rect = cv.minAreaRect(cont)
         box = cv.boxPoints(rect)
         x0,y0,x1,y1 = cv.boundingRect(box)
         x1 +=x0
-        # cv.rectangle(line,(x0,y0),(x1,y0+y1),(0,0,0),2)
-        images.append(line[0:y,x0:x1])
-
+        if not check:
+            cv.rectangle(line,(x0,0),(x1+x0,y),(0,0,0),2)
+            check = 1
+        else:
+            cv.rectangle(line,(x0,0),(x1+x0,y),(255,255,255),2)
+    images.append(line)
 #
+# #
 # image = images[0:5]
 # img = image[3].copy()
 
-    close = getClose(line)
-    contours, hierarchy = cv.findContours(close.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    end  = 0
-    check = 0
-
-    for cont in contours:
-        rect = cv.minAreaRect(cont)
-        box = cv.boxPoints(rect)
-        x0,y0,x1,y1 = cv.boundingRect(box)
-        cv.line(line,(x0,0),(x0,y),(255,255,255),2)
-        cv.line(line,(x0+x1,0),(x0+x1,y),(255,255,255),2)
-        coordsX.append([x0,x0+x1])
-
-    vert.append(line)
-showImage(vert)
-
-for coords in coordsX:
-    x0,x1 = coords
-    print(x0,x1)
+#     close = getClose(line)
+#     contours, hierarchy = cv.findContours(close.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+#     end  = 0
+#     check = 0
+#     contours = contours[::-1]
+#     for cont in contours:
+#         rect = cv.minAreaRect(cont)
+#         box = cv.boxPoints(rect)
+#         x0,y0,x1,y1 = cv.boundingRect(box)
+#         # cv.line(line,(x0,0),(x0,y),(255,255,255),2)
+#         # cv.line(line,(x0+x1,0),(x0+x1,y),(255,255,255),2)
+#         if not check:
+#             cv.rectangle(line,(x0,0),(x1+x0,y),(0,0,0),2)
+#             check = 1
+#         else:
+#             cv.rectangle(line,(x0,0),(x1+x0,y),(255,255,255),2)
+#         coordsX.append([x0,x0+x1])
+#
+#     vert.append(line)
+# showImage(vert)
+showImage(images)
