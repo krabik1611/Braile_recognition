@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 from os import system as sys
+import os
 
 def showImage(*img):
     '''show one or two image in one plot'''
@@ -33,10 +34,79 @@ def showImage(*img):
             plt.subplot(row,column,i),plt.imshow(img[i-1])
             plt.title(i), plt.xticks([]),plt.yticks([])
         plt.show()
+def getCoordSymbols(line):
+    '''func for return coords X0 and X1 for All symbol'''
+    line = line.copy()
+    img = imgModify(line,'edges')
+
+
+    # create kernel any size for next actions
+    kernel_dialte = np.ones((100,5),np.uint8)
+    kernel_close = np.ones((5,5),np.uint8)
+    # Dilate image and close it for get rectagle contours symbols
+    dilate = cv.dilate(img,kernel_dialte,iterations=1)
+    close = cv.morphologyEx(dilate,cv.MORPH_CLOSE, kernel_close, iterations=1)
+    # close is useful image for next actions
+    contours, hierarchy = cv.findContours( close.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    contours = contours[::-1]
+    sredX = 0 # sred value X1
+    symbols = [] # list for keep coordinates all symbols
+    sredX = int(sredX)
+    for i in range(2):
+        for cont in contours:
+            rect = cv.minAreaRect(cont)                # get coordinates
+            box = cv.boxPoints(rect)                   # for all symbol
+            x0,y0,x1,y1 = cv.boundingRect(box)         #
+            if not i:
+                sredX += (x1)/len(contours)            # calculate average X1
+            else:
+                if x1/sredX > 1.5:                     # divide big rectangle
+                    x1 = int(x1//2)                    # into 2 small
+                    symbols.append([x0,x1])
+                    symbols.append([x0+x1,x1])
+                elif x1/sredX < 0.7:                   # multiplicate small rectangle
+                    x1 = x1*2
+                    symbols.append([x0,x1])
+                else:
+                    symbols.append([x0,x1])            # add normal rectangle
+
+        if not i:
+            sredX = int(sredX)
+        symbols.sort()
+        space = []                                     # keep space value
+        for i in range(len(symbols)):
+            if not i:
+                x0_ , x1_ = symbols[i]
+                x_ = x0_ + x1_                         # calculate coords prevous symbol
+            else:
+                x0 , _ = symbols[i]
+                if sredX < x0-x_:
+                    space.append([x_,sredX])
+                x0_ , x1_ = symbols[i]
+                x_ = x0_ + x1_                          # calculate coords symbol
+                                                        # for next iterations
+
+
+        symbols.extend(space)                           # add space in default list
+        symbols.sort()
+    return symbols
+def show2Image(img1,img2):
+    '''func for show 2 image inone plot'''
+    # powerful compared for showImage
+    plt.subplot(2,1,1), plt.imshow(img1)
+    plt.title(1), plt.xticks([]),plt.yticks([])
+    plt.subplot(2,1,2), plt.imshow(img2)
+    plt.title(2), plt.xticks([]),plt.yticks([])
+    plt.show()
 
 def saveString(path,lines):
+    '''save string'''
     file_save = path[:-4]
-    sys('mkdir %s' %file_save)
+    try:
+        os.mkdir(file_save)
+        print("Folder create")
+    except OSError:
+        print("Folder exist")
     count = 1
     for string in lines:
         file_save = path[:-4] + "/%i.jpg" %count
@@ -44,6 +114,24 @@ def saveString(path,lines):
         cv.imwrite(file_save,string)
         count+=1
     print('complete')
+def saveSymbols(path,symbols):
+    '''save all Symbols'''
+    file_save = path[:-4]
+    try:
+        os.mkdir(file_save)
+        print("Folder create")
+    except OSError:
+        print("Folder exist")
+    count = 1
+    for sym in symbols:
+        file_save = path[:-4] + "/%i.jpg" %count
+        print(file_save)
+        try:
+            cv.imwrite(file_save,sym)
+            count+=1
+        except cv.error:
+            pass
+
 
 def readImage(file_path):
     '''only read image and return it'''
@@ -140,18 +228,36 @@ def getString(img,contours):
         _, y0, _, y1 = cont
         lines.append(img[y0:y1,0:x])
     return lines
+def getSymbols(lines):
+    '''return slice image'''
+    image = []
+    for line in lines:
+        line = line.copy()
+        symbols = getCoordSymbols(line) # get coords symbols
+        y,x = line.shape
+        for sym in symbols:
+            x0,x1 = sym
+            image.append(line[0:y,x0:x1+x0])
+    return image
 
-
+def returnLines(path):
+    '''return list of lines'''
+    img = readImage(path)
+    imgMod = imgModify(img, 'open')
+    contour = getCont(imgMod)
+    lines = getString(img, contour)
+    return lines
 
 def allAction(path):
     '''func for run all action'''
     img = readImage(path)
     imgMod = imgModify(img, 'open')
     contour = getCont(imgMod)
-    # lines = getString(img, contour)
-    lines = drawRect(img, contour)
-    showImage(lines)
+    lines = getString(img, contour)
+    # lines = drawRect(img, contour)
+    symbols = getSymbols(lines)
+    saveSymbols(path, symbols)
 
 
-
-# allAction('../dataFiles/origImage/perfect2.jpg')
+if __name__ == '__main__':
+    allAction('../dataFiles/origImage/perfect1.jpg')
