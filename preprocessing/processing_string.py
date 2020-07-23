@@ -124,7 +124,7 @@ def saveSymbols(path,symbols):
         print("Folder exist")
     count = 1
     for sym in symbols:
-        file_save = path[:-4] + "/%i.jpg" %count
+        file_save = path[:-4] + "/%i.png" %count
         print(file_save)
         try:
             cv.imwrite(file_save,sym)
