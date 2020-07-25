@@ -15,3 +15,14 @@ https://docs.opencv.org/trunk/d9/d61/tutorial_py_morphological_ops.html
 ######Нахождение контуров######
 ###############################
 https://robotclass.ru/tutorials/opencv-python-find-contours/
+
+#########################################
+######Геометрические преобразования######
+#########################################
+https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_geometric_transformations/py_geometric_transformations.html
+
+
+####################
+######tutorials######
+####################
+https://docs.opencv.org/trunk/d6/d00/tutorial_py_root.html
