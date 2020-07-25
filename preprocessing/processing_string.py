@@ -93,9 +93,9 @@ def getCoordSymbols(line):
 def show2Image(img1,img2):
     '''func for show 2 image inone plot'''
     # powerful compared for showImage
-    plt.subplot(2,1,1), plt.imshow(img1)
+    plt.subplot(1,2,1), plt.imshow(cv.cvtColor(img1,cv.COLOR_BGR2RGB))
     plt.title(1), plt.xticks([]),plt.yticks([])
-    plt.subplot(2,1,2), plt.imshow(img2)
+    plt.subplot(1,2,2), plt.imshow(cv.cvtColor(img2,cv.COLOR_BGR2RGB))
     plt.title(2), plt.xticks([]),plt.yticks([])
     plt.show()
 
@@ -142,22 +142,18 @@ def imgModify(img,key):
     '''modify image and return need type'''
     img = cv.GaussianBlur(img, (5, 5), 0)
     img = cv.GaussianBlur(img, (5, 5), 0)
-    edges = cv.Canny(img,20,70)
+    if key=="edges":
+        image = cv.Canny(img,20,70)
+    else:
+        kernel = np.ones((5,30),np.uint8)
 
-    kernel = np.ones((5,30),np.uint8)
-
-
-    dilate = cv.dilate(edges,kernel,iterations=1)
-    closing = cv.morphologyEx(dilate,cv.MORPH_CLOSE,kernel,iterations=2)
-    open  = cv.morphologyEx(closing, cv.MORPH_OPEN, kernel,iterations=2)
-
-
-    dict = {"edges":edges,
-            "dilate":dilate,
-            "closing":closing,
-            "open":open}
-    # use open. best result
-    return dict[key]
+        if key=="dilate":
+            image = cv.dilate(edges,kernel,iterations=1)
+        elif key=="closing":
+            image = cv.morphologyEx(dilate,cv.MORPH_CLOSE,kernel,iterations=2)
+        elif key=="open":
+            image  = cv.morphologyEx(closing, cv.MORPH_OPEN, kernel,iterations=2)
+    return image
 
 def drawRect(img,contours):
     '''draw rect in any image'''
