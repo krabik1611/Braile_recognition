@@ -179,13 +179,13 @@ def drawLine(img,contours):
         cv.line(img,(0,y0),(x,y0),(0,0,0),2)
         cv.line(img,(0,y1),(x,y1),(0,0,0),2)
     return cv.cvtColor(img,cv.COLOR_BGR2RGB)
-def cont(img):
+def contour(img):
     '''draw contour in image'''
     img = img.copy()
     contours, hierarchy = cv.findContours(img.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
     cv.drawContours(img, contours, -1, (255, 255, 255), 2, cv.LINE_AA, hierarchy, 1)
-    return img
+    return (contours, hierarchy)
 
 def getCont(img):
     '''find and return big contour'''
