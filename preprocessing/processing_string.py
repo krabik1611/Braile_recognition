@@ -138,20 +138,25 @@ def readImage(file_path):
     img = cv.imread(file_path,cv.IMREAD_GRAYSCALE)
     return img
 
-def imgModify(img,key):
+def imgModify(img,key,kernel_size=(5,30)):
     '''modify image and return need type'''
     img = cv.GaussianBlur(img, (5, 5), 0)
     img = cv.GaussianBlur(img, (5, 5), 0)
     if key=="edges":
         image = cv.Canny(img,20,70)
     else:
-        kernel = np.ones((5,30),np.uint8)
-
-        if key=="dilate":
+        kernel = np.ones(kernel_size,np.uint8)
+        if key=="dilate" or key=="closing" :
+            edges = cv.Canny(img,20,70)
             image = cv.dilate(edges,kernel,iterations=1)
         elif key=="closing":
+            edges = cv.Canny(img,20,70)
+            dilate = cv.dilate(edges,kernel,iterations=1)
             image = cv.morphologyEx(dilate,cv.MORPH_CLOSE,kernel,iterations=2)
         elif key=="open":
+            edges = cv.Canny(img,20,70)
+            dilate = cv.dilate(edges,kernel,iterations=1)
+            closing = cv.morphologyEx(dilate,cv.MORPH_CLOSE,kernel,iterations=2)
             image  = cv.morphologyEx(closing, cv.MORPH_OPEN, kernel,iterations=2)
     return image
 
@@ -185,7 +190,7 @@ def contour(img):
     contours, hierarchy = cv.findContours(img.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
     cv.drawContours(img, contours, -1, (255, 255, 255), 2, cv.LINE_AA, hierarchy, 1)
-    return (contours, hierarchy)
+    return contours
 
 def getCont(img):
     '''find and return big contour'''
@@ -251,8 +256,10 @@ def allAction(path):
     contour = getCont(imgMod)
     lines = getString(img, contour)
     # lines = drawRect(img, contour)
-    symbols = getSymbols(lines)
-    saveSymbols(path, symbols)
+    # symbols = getSymbols(lines)
+    # saveSymbols(path, symbols)
+    showImage(lines)
+
 
 
 if __name__ == '__main__':
