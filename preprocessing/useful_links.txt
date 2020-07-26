@@ -26,3 +26,6 @@ https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/
 ######tutorials######
 ####################
 https://docs.opencv.org/trunk/d6/d00/tutorial_py_root.html
+
+
+https://note.nkmk.me/en/python-opencv-numpy-alpha-blend-mask/
