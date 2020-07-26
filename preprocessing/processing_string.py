@@ -158,6 +158,8 @@ def imgModify(img,key,kernel_size=(5,30)):
             dilate = cv.dilate(edges,kernel,iterations=1)
             closing = cv.morphologyEx(dilate,cv.MORPH_CLOSE,kernel,iterations=2)
             image  = cv.morphologyEx(closing, cv.MORPH_OPEN, kernel,iterations=2)
+        elif key =="erode":
+            image = cv.erode(img,kernel,iterations = 1)
     return image
 
 def drawRect(img,contours):
