@@ -144,20 +144,12 @@ class Image():
             debug = 0
 
         if debug:
-            # img1 = self.Image.copy()
-            # for box in boxes:
-            #     x0,y0,x1,y1 = box
-            #     # cv.rectangle(img1,(x0,y0),(x0,y0),(0,0,0),10)
-            #     # cv.rectangle(img1,(x0+x1,y0+y1),(x0+x1,y0+y1),(0,0,0),10)
-            #     cv.line(img1,(x0,y0),(x0+x1,y0),(0,0,0),2)
-            #     cv.line(img1,(x0,y0+y1),(x0+x1,y0+y1),(0,0,0),2)
-            # self.showImage(img,img1)
+            img = self.img.copy()
             for line,box in zip(lines,boxes):
-                img = self.img.copy()
                 x0,y0,x1,y1 = box
                 cv.rectangle(img,(x0,y0),(x0+x1,y0+y1),(0,0,0),2)
 
-                self.showImage(img)
+            self.showImage(img)
         return lines
 
     def cutWithMask(self,**kword):
@@ -166,12 +158,12 @@ class Image():
         img = self.__DarkContours__.copy()
         img = cv.morphologyEx(img.copy(),cv.MORPH_CLOSE,self.__defaultKernel__)
 
-        # create
+        y,x,_ = img.shape
         horizontalMask = self.imgModify(img=img,key="dilate",kernel_size=(5,int(self.x*1.5)))
-        verticalMask = self.imgModify(img=img,key="dilate",kernel_size=(int(self.y),20))
+        verticalMask = self.imgModify(img=img,key="dilate",kernel_size=(int(self.y),15))
         mask = cv.bitwise_and(horizontalMask,verticalMask)
-        lines = self.__findRect__(mask)
-        return lines 
+        self.lines = self.__findRect__(mask)
+        return self.lines
 
 
         if "debug" in kword:
@@ -186,10 +178,31 @@ class Image():
             self.showImage(mask)
 
 
+    def checkString(self,*lines,**kword):
+        '''check string in cut lines'''
+        if len(lines) == 0 :
+            lines = self.lines
+        else:
+            lines = lines[0]
+
+
+
+        for line in lines:
+            line = cv.Canny(line)
+            plt.imshow(line)
+            plt.show()
+        if "debug" in kword:
+            debug = kword["debug"]
+        else:
+            debug = 0
+
+        if debug:
+            pass
+
 
 def main():
-    for i in range(1,15):
-        path = "../dataFiles/origImage/book/{}.jpeg".format(i)
+    for i in range(1,2):
+        path = "../dataFiles/origImage/book/10.jpeg"
         image = Image(path)
         if image.__checkBright__()==255:
             continue
@@ -198,7 +211,8 @@ def main():
             canny = image.imgModify(image.img,key="edges")
             contours = image.findContour(canny,key="tree")
             contours = image.delCont(contours)
-            image.cutWithMask()
+            lines = image.cutWithMask()
+            string = image.checkString(lines)
 
     # image.showImage(canny)
 
