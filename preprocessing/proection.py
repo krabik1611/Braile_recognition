@@ -47,18 +47,13 @@ def rotateHorizontal(img):
                                                             # value of angle
     center = (x//2,y//2)
     grad = abs(math.degrees(sredG))
-    # show(canny)
     M = cv.getRotationMatrix2D(center, grad, 1.0)
     lines = cv.warpAffine(image, M, (x, y))                 # transofrm image
     return lines
-    mask = np.zeros((y+2,x+2),np.uint8)
-    cv.floodFill(dark,mask,(0,0),255)
-    dark_imv = cv.bitwise_not(dark)
-
-    show(dark_imv)
 
 
-def cut(image):
+
+def cutA(image):
     """tranfer image to another place with mask"""
     img = image.copy()
     y,x = img.shape
@@ -74,13 +69,10 @@ def cut(image):
     contours = contour(edges)
     # draw all contour
     dark_contours = cv.drawContours(dark.copy(), contours, -1, (255, 255, 255), 3)
-    # show(dark_contours)
     lenLines = []
-    sredLenCont = 0
     for cont in contours:
         lenLines.append(len(cont))
     mean = np.mean(lenLines)
-    # print("Before:\n",np.var(lenLines),"\n",mean)
     deviations = (np.var(lenLines))**0.5
     lenLines = []
     i = 0
@@ -93,34 +85,14 @@ def cut(image):
     for cont in contours:
         lenLines.append(len(cont))
     mean = np.mean(lenLines)
-    # print("After:\n",np.var(lenLines),"\n",mean)
 
 
-    dark_contours1 = cv.drawContours(dark.copy(), contours, -1, (255, 255, 255), 4)
-    # open = imgModify(dark_contours1,'open',(5,10))
+    dark_contours1 = cv.drawContours(dark.copy(), contours, -1, (255, 255, 255), 1)
+    # show2Image(edges,dark_contours1)
 
-    # dilateX = imgModify(open,"dilate",(100,2*x))
-    # dilateX_ = cv.bitwise_not(dilateX)
-    # dilateY = imgModify(open,"dilate",(2*y,100))
-    # area = cv.bitwise_and(dilateX,dilateX,mask=dilateY)
-    # area_ = cv.bitwise_not(area)
-    # white_layer = cv.bitwise_and(white,white,mask=area_)
-    # testImg = cv.bitwise_and(img,img,mask=area)
-    # dst = cv.add(white_layer,testImg)
-    # show2Image(dilateX,dilateY)
-    # show(dst)
-    # areaCont = contour(area)[::-1]
-    # rect = cv.minAreaRect(areaCont[0])                # get coordinates
-    # box = cv.boxPoints(rect)                   # for all symbol
-    # x0,y0,x1,y1 = cv.boundingRect(box)
-    # imgArea = img[y0:y0+y1,x0:x1+x0]
-    # showImage([img,imgArea,dst])
-    # show2Image(dilateX,dilateY)
-    # show(dark_contours1)
     open = imgModify(dark_contours1,'open',(5,10))
     dilate_open = imgModify(open,"dilate",(5,5))
     close = imgModify(dilate_open,"open",(20,20))
-    # show(close)
     contours = contour(close)
     ones = 1
     for cont in contours:
@@ -150,98 +122,46 @@ def cut(image):
         maxX=x
     if maxY>y:
         maxY=y
-    cv.rectangle(close,(minX,minY),(maxX,maxY),(255,255,255),2)
-    # show(close)
+    # cv.rectangle(close,(minX,minY),(maxX,maxY),(255,255,255),2)
     return img[minY:maxY,minX:maxX]
-    # show2Image(img,dilate_open)
 
 
-def cutH(img):
-    '''find and cut image for horizontal position'''
-    def AB(d1,d2):
-        '''calculate parametrs for straight'''
-        x1,y1 = d1
-        x2,y2 = d2
-        a = (y2-y1)/(x2-x1)
-        b = y1-a*x1
-        return (a,b)
 
+def check_bright(image):
+    img = image.copy()
     y,x = img.shape
-
-
-    edges = imgModify(img,"edges")
-    lines = cv.HoughLines(edges,1,np.pi/180,250)
-    line1 = []
-    for line in lines:
-        rho,theta = line[0]
-        a = np.cos(theta)
-        b = np.sin(theta)
-        x0 = a*rho
-        y0 = b*rho
-        x1 = int(x0 + 10000*(-b))
-        y1 = int(y0 + 10000*(a))
-        x2 = int(x0 - 10000*(-b))
-        y2 = int(y0 - 10000*(a))
-        line1.append([(x1,y1),(x2,y2)])
-
-    line1.sort(key = lambda i: i[0][1])
-    for i in range(len(line1)):                 # find need lines
-        if not i:
-            last = line1[i][0][1]
-            continue
-        else:
-            if line1[i][0][1] - last < y/4:
-                minY = line1[i]
-                last = line1[i][0][1]
-            else:
-                maxY = line1[i]
-                break
-# calculate parametr Y for line
-    _,b1 = AB(minY[0],minY[1])
-
-    _,b2 = AB(maxY[0],maxY[1])
-    return img[int(b1):int(b2),0:x]            # slice image
-# edges = imgModify(img1, "edges")
-# show(img1)
-
-
-
-def test_many():
-    for i in range(1,30):
-
-        path = '../dataFiles/origImage/book/%i.jpeg' %i
-        try:
-            img = cv.imread(path,cv.IMREAD_GRAYSCALE)
-        except:
-            print("read error:%i"%i)
-            continue
-        # img1 = cutH(img)
-        try:
-            cut = cut(img)
-        except:
-            print("Cut error:%i"%i)
-            continue
-        try:
-            rotated = rotateHorizontal(cut)
-        except:
-            print("rotated error:%i"%i)
-            continue
-        try:
-            show2Image(img,rotated)
-        except:
-            print("show Error:%i"%i)
-            continue
-
-def main():
-    path = '../dataFiles/origImage/2.jpg'
-    try:
-        img = cv.imread(path,cv.IMREAD_GRAYSCALE)
-    except:
-        print("read error")
+    if np.mean(img) > 210:
         return 0
-    # img1 = cutH(img)
+    else:
+        return 1
+
+
+
+    # show2Image(img,img1)
+
+def runMany(images):
+    if images is list or images is tuple:
+        for img in images:
+            try:
+                cut = cutA(img)
+            except:
+                print("Cut error:%i"%i)
+
+            try:
+                rotated = rotateHorizontal(cut)
+                # complete.append(rotated)
+            except:
+                print("rotated error:%i"%i)
+            try:
+                show2Image(img,rotated)
+            except:
+                print("show Error:%i"%i)
+    else:
+        print("Not list or tuple")
+
+def runSingle(img):
     try:
-        cut = cut(img)
+        cut = cutA(img)
     except:
         print("Cut error")
         return 0
@@ -251,9 +171,20 @@ def main():
         print("rotated error")
         return 0
     try:
-        show2Image(img,rotated)
+        # show2Image(img,rotated)
+        return rotated
     except:
         print("show Error")
         return 0
+
+def main():
+    # path = '../dataFiles/origImage/4.jpg'
+    path = '../dataFiles/origImage/book/8.jpeg'
+    img = cv.imread(path,cv.IMREAD_GRAYSCALE)
+    if 1:#check_bright(img):
+        rotated = runSingle(img)
+    else:
+        print("Light image")
+    showLines(rotated)
 if __name__ == '__main__':
     main()

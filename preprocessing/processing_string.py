@@ -11,15 +11,10 @@ def showImage(*img):
         row = len(images)//2 + 1
         column =2
         lenght = len(images)+1
-        # print(lenght-1)
         for n in range(1,lenght):
-
             plt.subplot(row,column,n),plt.imshow(cv.cvtColor(images[n-1],cv.COLOR_BGR2RGB))
             plt.title(n), plt.xticks([]),plt.yticks([])
-
         plt.show()
-
-
     else:
         if len(img)//2 ==0:
             row = 1
@@ -34,18 +29,20 @@ def showImage(*img):
             plt.subplot(row,column,i),plt.imshow(img[i-1])
             plt.title(i), plt.xticks([]),plt.yticks([])
         plt.show()
+
 def getCoordSymbols(line):
     '''func for return coords X0 and X1 for All symbol'''
     line = line.copy()
     img = imgModify(line,'edges')
 
-
     # create kernel any size for next actions
     kernel_dialte = np.ones((100,5),np.uint8)
     kernel_close = np.ones((5,5),np.uint8)
+
     # Dilate image and close it for get rectagle contours symbols
     dilate = cv.dilate(img,kernel_dialte,iterations=1)
     close = cv.morphologyEx(dilate,cv.MORPH_CLOSE, kernel_close, iterations=1)
+
     # close is useful image for next actions
     contours, hierarchy = cv.findContours( close.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     contours = contours[::-1]
@@ -81,11 +78,10 @@ def getCoordSymbols(line):
             else:
                 x0 , _ = symbols[i]
                 if sredX < x0-x_:
-                    space.append([x_,sredX])
+                    space.append([x_,sredX+5])
                 x0_ , x1_ = symbols[i]
                 x_ = x0_ + x1_                          # calculate coords symbol
                                                         # for next iterations
-
 
         symbols.extend(space)                           # add space in default list
         symbols.sort()
@@ -191,7 +187,7 @@ def contour(img):
     img = img.copy()
     contours, hierarchy = cv.findContours(img.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
-    cv.drawContours(img, contours, -1, (255, 255, 255), 2, cv.LINE_AA, hierarchy, 1)
+    # cv.drawContours(img, contours, -1, (255, 255, 255), 2, cv.LINE_AA, hierarchy, 1)
     return contours
 
 def getCont(img):
@@ -231,8 +227,9 @@ def getString(img,contours):
         _, y0, _, y1 = cont
         lines.append(img[y0:y1,0:x])
     return lines
+
 def getSymbols(lines):
-    '''return slice image'''
+    '''return slice symbols image'''
     image = []
     for line in lines:
         line = line.copy()
@@ -244,25 +241,28 @@ def getSymbols(lines):
     return image
 
 def returnLines(path):
-    '''return list of lines'''
     img = readImage(path)
     imgMod = imgModify(img, 'open')
     contour = getCont(imgMod)
     lines = getString(img, contour)
     return lines
-
 def allAction(path):
     '''func for run all action'''
     img = readImage(path)
     imgMod = imgModify(img, 'open')
     contour = getCont(imgMod)
     lines = getString(img, contour)
-    # lines = drawRect(img, contour)
+    lines = drawRect(img, contour)
     # symbols = getSymbols(lines)
     # saveSymbols(path, symbols)
     showImage(lines)
 
-
+def showLines(img):
+    imgMod = imgModify(img, 'open')
+    contour = getCont(imgMod)
+    lines = getString(img, contour)
+    lines = drawRect(img, contour)
+    showImage(lines)
 
 if __name__ == '__main__':
     allAction('../dataFiles/origImage/perfect1.jpg')
