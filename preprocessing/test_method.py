@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import math
 from matplotlib import pyplot as plt
 from os import system as sys
 import os
@@ -163,6 +164,10 @@ class Image():
         verticalMask = self.imgModify(img=img,key="dilate",kernel_size=(int(self.y),15))
         mask = cv.bitwise_and(horizontalMask,verticalMask)
         self.lines = self.__findRect__(mask)
+        try:
+            self.lines = self.__rotationsLines__(self.lines)
+        except:
+            pass
         return self.lines
 
 
@@ -177,20 +182,57 @@ class Image():
             # self.showImage(verticalMask)
             self.showImage(mask)
 
+    def __rotationsLines__(self,lines):
+        def checkAngle(img,img1):
+            img = img.copy()
+            lines = cv.HoughLines(img,1,np.pi/180,250)            # get line
+            sredG = 0
+
+            for line in lines:
+                rho,theta = line[0]
+                a = np.cos(theta)
+
+                sredG+=a/len(lines)
+
+            return abs(math.degrees(sredG))
+            
+        lines1 = []
+        kernel = np.ones([5,5],np.uint8)
+        kernel_dilate = np.ones([1,50],np.uint8)
+        for line in lines:
+            y,x = line.shape
+            line = cv.GaussianBlur(line,(5,5),0)
+            edges = self.imgModify(line,"edges")
+            close = cv.morphologyEx(edges,cv.MORPH_CLOSE,kernel)
+            # open = cv.morphologyEx(edges,cv.MORPH_OPEN,kernel)
+            dilate = cv.dilate(close,kernel_dilate,iterations=2)
+            grad = checkAngle(dilate,line)
+            center = (x//2,y//2)
+            M = cv.getRotationMatrix2D(center, grad, 1.0)
+            test = cv.warpAffine(line, M, (x, y))
+            lines1.append(test)
+            # plt.imshow(test)
+            # plt.show()
+        return lines1
+
+
 
     def checkString(self,*lines,**kword):
         '''check string in cut lines'''
+
         if len(lines) == 0 :
             lines = self.lines
         else:
             lines = lines[0]
-
-
-
+        print(len(lines))
         for line in lines:
-            line = cv.Canny(line)
-            plt.imshow(line)
-            plt.show()
+            y,x = line.shape
+            edges = cv.Canny(line,30,70)
+
+            kernel = np.ones([1,int(x*1.5)],np.uint8)
+
+            line1 = cv.dilate(edges,kernel,iterations=1)
+            self.showImage(line,edges)
         if "debug" in kword:
             debug = kword["debug"]
         else:
@@ -212,7 +254,7 @@ def main():
             contours = image.findContour(canny,key="tree")
             contours = image.delCont(contours)
             lines = image.cutWithMask()
-            string = image.checkString(lines)
+            string = image.checkString()
 
     # image.showImage(canny)
 
