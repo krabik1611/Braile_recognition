@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                 final File filedirs = new File(getFilesDir() + "/TranslateBraille/");
                 filedirs.mkdirs();
                 File file = new File(filedirs, "photo.jpg");
-                Toast.makeText(MainActivity.this, file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainActivity.this, file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
                 imageCapture.takePicture(file, new ImageCapture.OnImageSavedListener() {
                     @Override
                     public void onImageSaved(@NonNull File file) {
