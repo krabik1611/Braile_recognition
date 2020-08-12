@@ -69,7 +69,6 @@ def getCoordSymbols(line):
 
         if not i:
             sredX = int(sredX)
-        symbols.sort()
         space = []                                     # keep space value
         for i in range(len(symbols)):
             if not i:
