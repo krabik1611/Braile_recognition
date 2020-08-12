@@ -110,6 +110,7 @@ class Image():
 
         dark = self.__dark__.copy()
         cv.drawContours(dark, contours, -1, (255, 255, 255), 1)
+        dark = cv.cvtColor(dark,cv.COLOR_BGR2GRAY)
         self.__DarkContours__ = dark
 
         if "debug" in kword:
@@ -159,15 +160,39 @@ class Image():
         img = self.__DarkContours__.copy()
         img = cv.morphologyEx(img.copy(),cv.MORPH_CLOSE,self.__defaultKernel__)
 
-        y,x,_ = img.shape
+        y,x = img.shape
         horizontalMask = self.imgModify(img=img,key="dilate",kernel_size=(5,int(self.x*1.5)))
         verticalMask = self.imgModify(img=img,key="dilate",kernel_size=(int(self.y),15))
         mask = cv.bitwise_and(horizontalMask,verticalMask)
         self.lines = self.__findRect__(mask)
+        # sredY  = 0
+        for line in self.lines:
+            y,x = line.shape
+            # sredY += (y)/len(self.lines)
+        # print(sredY)
         try:
             self.lines = self.__rotationsLines__(self.lines)
         except:
             pass
+
+        check = False
+        for line in self.lines:
+            y,_ = line.shape
+            if y > 70:
+                check = True
+                break
+
+        if check:
+            lines = []
+            for line in self.lines:
+                y,_ = line.shape
+                if y > 70:
+                    add = self.checkString(line)
+                    lines.extend(add)
+                else:
+                    lines.append(line)
+
+            self.lines = lines
         return self.lines
 
 
@@ -179,7 +204,6 @@ class Image():
         if debug:
         # debug function
             # self.showImage(horizontalMask)
-            # self.showImage(verticalMask)
             self.showImage(mask)
 
     def __rotationsLines__(self,lines):
@@ -195,7 +219,7 @@ class Image():
                 sredG+=a/len(lines)
 
             return abs(math.degrees(sredG))
-            
+
         lines1 = []
         kernel = np.ones([5,5],np.uint8)
         kernel_dilate = np.ones([1,50],np.uint8)
@@ -204,47 +228,110 @@ class Image():
             line = cv.GaussianBlur(line,(5,5),0)
             edges = self.imgModify(line,"edges")
             close = cv.morphologyEx(edges,cv.MORPH_CLOSE,kernel)
-            # open = cv.morphologyEx(edges,cv.MORPH_OPEN,kernel)
             dilate = cv.dilate(close,kernel_dilate,iterations=2)
             grad = checkAngle(dilate,line)
             center = (x//2,y//2)
             M = cv.getRotationMatrix2D(center, grad, 1.0)
             test = cv.warpAffine(line, M, (x, y))
             lines1.append(test)
-            # plt.imshow(test)
-            # plt.show()
         return lines1
 
 
 
-    def checkString(self,*lines,**kword):
+    def checkString(self,img):
         '''check string in cut lines'''
+        img = img.copy()
+        string = []
+        y,x = img.shape
+        edges = cv.Canny(img,30,70)
+        cont = self.findContour(edges,key="tree")
+        contours = self.delCont(cont)
+        image = self.__DarkContours__
+        kernel = np.ones([1,int(x*1.5)],np.uint8)
+        line1 = cv.dilate(image,kernel,iterations=1)
+        contours, hierarchy = cv.findContours(line1, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        contour = []
+        for cont in contours[::-1]:
+            rect = cv.minAreaRect(cont)
+            box = cv.boxPoints(rect)
+            x0,y0,x1,y1 = cv.boundingRect(box)
 
-        if len(lines) == 0 :
-            lines = self.lines
-        else:
-            lines = lines[0]
-        print(len(lines))
-        for line in lines:
-            y,x = line.shape
-            edges = cv.Canny(line,30,70)
+            contour.append([0,y0-3,x,y1+3+y0])
+        for cont in contour:
+            x0,y0,x1,y1 = cont
+            string.append(img[y0:y1,x0:x1])
 
-            kernel = np.ones([1,int(x*1.5)],np.uint8)
+        return string
 
-            line1 = cv.dilate(edges,kernel,iterations=1)
-            self.showImage(line,edges)
-        if "debug" in kword:
-            debug = kword["debug"]
-        else:
-            debug = 0
+    def getSymbol(self,img):
+        img = img.copy()
+        img = cv.GaussianBlur(img,(3,3),0)
+        edges = cv.Canny(img,30,70)
 
-        if debug:
-            pass
+        # create kernel any size for next actions
+        kernel_dialte = np.ones((100,5),np.uint8)
+        kernel_close = np.ones((5,5),np.uint8)
+
+        # Dilate image and close it for get rectagle contours symbols
+        dilate = cv.dilate(edges,kernel_dialte,iterations=1)
+        close = cv.morphologyEx(dilate,cv.MORPH_CLOSE, kernel_close, iterations=1)
+        self.showImage(dilate,close)
+        contours = self.findContour(close,key="external")[::-1]
+
+        sredX = 0 # sred value X1
+        symbols = [] # list for keep coordinates all symbols
+        for i in range(2):
+            for cont in contours:
+                rect = cv.minAreaRect(cont)                # get coordinates
+                box = cv.boxPoints(rect)                   # for all symbol
+                x0,y0,x1,y1 = cv.boundingRect(box)         #
+                if not i:
+                    sredX += (x1)/len(contours)            # calculate average X1
+                else:
+                    if x1/sredX > 1.5:                     # divide big rectangle
+                        x1 = int(x1//2)                    # into 2 small
+                        symbols.append([x0,x1])
+                        symbols.append([x0+x1,x1])
+                    elif x1/sredX < 0.7:                   # multiplicate small rectangle
+                        x1 = x1*2
+                        symbols.append([x0,x1])
+                    else:
+                        symbols.append([x0,x1])            # add normal rectangle
+
+            if not i:
+                sredX = int(sredX)
+            symbols.sort()
+            space = []                                     # keep space value
+            for i in range(len(symbols)):
+                if not i:
+                    x0_ , x1_ = symbols[i]
+                    x_ = x0_ + x1_                         # calculate coords prevous symbol
+                else:
+                    x0 , _ = symbols[i]
+                    if sredX < x0-x_:
+                        space.append([x_,sredX+5])
+                    x0_ , x1_ = symbols[i]
+                    x_ = x0_ + x1_                          # calculate coords symbol
+                                                            # for next iterations
+
+            symbols.extend(space)                           # add space in default list
+            symbols.sort()
+            y,x = img.shape
+        # for sym in symbols:
+        #     image = img.copy()
+        #     x0,x1 = sym
+        #     cv.rectangle(image,(x0,0),(x1,y),(255,255,255),2)
+        #     plt.imshow(image)
+        #     plt.show()
+
+
+        return symbols
+
 
 
 def main():
     for i in range(1,2):
-        path = "../dataFiles/origImage/book/10.jpeg"
+        path = "../dataFiles/origImage/book/1.jpeg"
         image = Image(path)
         if image.__checkBright__()==255:
             continue
@@ -254,8 +341,11 @@ def main():
             contours = image.findContour(canny,key="tree")
             contours = image.delCont(contours)
             lines = image.cutWithMask()
-            string = image.checkString()
 
+            for line in lines:
+                symb = image.getSymbol(line)
+                # plt.imshow(line)
+                # plt.show()
     # image.showImage(canny)
 
 
