@@ -263,72 +263,54 @@ class Image():
 
         return string
 
-    def getSymbol(self,img):
-        img = img.copy()
-        img = cv.GaussianBlur(img,(3,3),0)
-        edges = cv.Canny(img,30,70)
-
-        # create kernel any size for next actions
-        kernel_dialte = np.ones((100,5),np.uint8)
-        kernel_close = np.ones((5,5),np.uint8)
-
-        # Dilate image and close it for get rectagle contours symbols
-        dilate = cv.dilate(edges,kernel_dialte,iterations=1)
-        close = cv.morphologyEx(dilate,cv.MORPH_CLOSE, kernel_close, iterations=1)
-        self.showImage(dilate,close)
-        contours = self.findContour(close,key="external")[::-1]
-
-        sredX = 0 # sred value X1
-        symbols = [] # list for keep coordinates all symbols
+    def getSymbol(self,line):
+        line = line.copy()
+        y,x = line.shape
+        kernel = np.ones((y,3),np.uint8)
+        edges = cv.Canny(line,20,70)
+        close = cv.morphologyEx(edges,cv.MORPH_CLOSE,kernel)
+        contours = self.findContour(close,key="tree")[::-1]
+        symbols = []
+        sredX = 0
         for i in range(2):
             for cont in contours:
-                rect = cv.minAreaRect(cont)                # get coordinates
-                box = cv.boxPoints(rect)                   # for all symbol
-                x0,y0,x1,y1 = cv.boundingRect(box)         #
+                rect = cv.minAreaRect(cont)
+                box = cv.boxPoints(rect)
+                x0,y0,x1,y1 = cv.boundingRect(box)
                 if not i:
-                    sredX += (x1)/len(contours)            # calculate average X1
+                    sredX += (x1)/len(contours)
                 else:
                     if x1/sredX > 1.5:                     # divide big rectangle
                         x1 = int(x1//2)                    # into 2 small
-                        symbols.append([x0,x1])
-                        symbols.append([x0+x1,x1])
+                        symbols.append([x0-3,x1+x0+3])
+                        symbols.append([x0+x1-3,x1+x0+3+x1])
                     elif x1/sredX < 0.7:                   # multiplicate small rectangle
                         x1 = x1*2
-                        symbols.append([x0,x1])
+                        symbols.append([x0-3,sredX+x0+3])
                     else:
-                        symbols.append([x0,x1])            # add normal rectangle
+                        symbols.append([x0-3,x1+3+x0])
 
+            sredX = int(sredX)
+        space = []                                     # keep space value
+
+        for i in range(len(symbols)):
             if not i:
-                sredX = int(sredX)
-            symbols.sort()
-            space = []                                     # keep space value
-            for i in range(len(symbols)):
-                if not i:
-                    x0_ , x1_ = symbols[i]
-                    x_ = x0_ + x1_                         # calculate coords prevous symbol
-                else:
-                    x0 , _ = symbols[i]
-                    if sredX < x0-x_:
-                        space.append([x_,sredX+5])
-                    x0_ , x1_ = symbols[i]
-                    x_ = x0_ + x1_                          # calculate coords symbol
-                                                            # for next iterations
-
-            symbols.extend(space)                           # add space in default list
-            symbols.sort()
-            y,x = img.shape
-        # for sym in symbols:
-        #     image = img.copy()
-        #     x0,x1 = sym
-        #     cv.rectangle(image,(x0,0),(x1,y),(255,255,255),2)
-        #     plt.imshow(image)
-        #     plt.show()
+                _, x_ = symbols[i]
+            else:
+                x, _ = symbols[i]
+                if x - x_ > sredX:
+                    space.append([x_,sredX+x_])
+                _, x_ = symbols[i]
 
 
-        return symbols
+        symbols.extend(space)                           # add space in default list
+        symbols.sort()
+        symbImg = []
+        for sym in symbols:
+            x0,x1 = sym
+            symbImg.append(line[0:y,x0:x1])
 
-
-
+        return symbImg
 def main():
     for i in range(1,2):
         path = "../dataFiles/origImage/book/1.jpeg"
@@ -341,13 +323,12 @@ def main():
             contours = image.findContour(canny,key="tree")
             contours = image.delCont(contours)
             lines = image.cutWithMask()
-
+            allSymb = []
             for line in lines:
-                symb = image.getSymbol(line)
-                # plt.imshow(line)
-                # plt.show()
-    # image.showImage(canny)
 
+                symb = image.getSymbol(line)
+                allSymb.extend(symb)
+                
 
 if __name__ == '__main__':
     main()
