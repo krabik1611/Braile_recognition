@@ -1,32 +1,25 @@
 package com.lab104.translatebraill;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.hardware.Camera;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.SystemClock;
-import android.sax.StartElementListener;
-import android.text.Layout;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.Toast;
+
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.camera.core.CameraX;
+import androidx.camera.core.FlashMode;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureConfig;
 import androidx.camera.core.Preview;
@@ -36,8 +29,9 @@ import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+
+
 import java.io.File;
-import java.security.Policy;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -49,18 +43,37 @@ public class MainActivity extends AppCompatActivity {
             "android.permission.FLASHLIGHT"
     };
     TextureView textureView;
-    ViewGroup.LayoutParams params, paramstool;
-    Toolbar toolbar;
-    ImageView imageView;
+    public static ViewGroup.LayoutParams params, paramsFrame;
+    Toolbar tbTop, tbBottom;
     ConstraintLayout constraintLayout;
     ConstraintSet set;
+    DisplayMetrics dm = new DisplayMetrics();
+    public static File file;
+    public static ImageView frame;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        getSupportActionBar().hide();
         Init();
+    }
 
-
+    private void Init()
+    {
+        tbTop = findViewById(R.id.toolbarTop);
+        tbBottom = findViewById(R.id.toolbarBottom);
+        textureView = findViewById(R.id.textureView);
+        frame = findViewById(R.id.frame);
+        paramsFrame = frame.getLayoutParams();
+        params = textureView.getLayoutParams();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        params.width = dm.widthPixels;
+        params.height = (dm.widthPixels*16)/9;
+        Toast.makeText(this, Integer.toString(dm.heightPixels), Toast.LENGTH_SHORT).show();
+        textureView.setLayoutParams(params);
+        paramsFrame.height = (dm.heightPixels - (tbTop.getLayoutParams().height + tbBottom.getLayoutParams().height)) * 80 / 100;
+        frame.setLayoutParams(paramsFrame);
         if (PermissionGranted())
         {
             StartCamera();
@@ -69,46 +82,16 @@ public class MainActivity extends AppCompatActivity {
         {
             ActivityCompat.requestPermissions(this,REQUEST_PERMISSIONS,REQUEST_CODE_PERMISSIONS);
         }
-
-    }
-
-    private void Init()
-    {
-        setContentView(R.layout.activity_main);
-        getSupportActionBar().hide();
-        textureView = findViewById(R.id.textureView);
-        params = textureView.getLayoutParams();
-        DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-        params.width = dm.widthPixels;
-        params.height = (dm.widthPixels*16)/9;
-        Toast.makeText(this, Integer.toString(dm.heightPixels), Toast.LENGTH_SHORT).show();
-        textureView.setLayoutParams(params);
-        toolbar = findViewById(R.id.toolbarTop);
-        paramstool = toolbar.getLayoutParams();
-        int heightTBtop = paramstool.height;
-        toolbar = findViewById(R.id.toolbarBottom);
-        paramstool = toolbar.getLayoutParams();
-        paramstool.width = dm.widthPixels;
-        //paramstool.height = dm.heightPixels - (params.height + heightTBtop);
-        toolbar.setLayoutParams(paramstool);
-        set = new ConstraintSet();
-        constraintLayout = findViewById(R.id.layout);
-        set.clone(constraintLayout);
-        set.connect(R.id.frame, ConstraintSet.TOP, R.id.toolbarTop, ConstraintSet.BOTTOM);
-        set.connect(R.id.frame, ConstraintSet.BOTTOM, R.id.toolbarBottom, ConstraintSet.TOP);
-        set.applyTo(constraintLayout);
     }
 
     private void StartCamera()
     {
         CameraX.unbindAll();
-        Rational ratio = new Rational(textureView.getHeight(),textureView.getWidth());
-        Size screen = new Size(params.height,params.width);
+        Rational ratio = new Rational(textureView.getWidth(),textureView.getHeight());
+        Size screen = new Size(dm.widthPixels,dm.heightPixels);
 
         PreviewConfig previewConfig = new PreviewConfig.Builder().setTargetAspectRatio(ratio).setTargetResolution(screen).build();
         Preview preview = new Preview(previewConfig);
-
         preview.setOnPreviewOutputUpdateListener(
                 new Preview.OnPreviewOutputUpdateListener() {
                     @Override
@@ -124,27 +107,23 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
         ImageCaptureConfig imageCaptureConfig = new ImageCaptureConfig.Builder().
-                setCaptureMode(ImageCapture.CaptureMode.MIN_LATENCY).build();
+                setCaptureMode(ImageCapture.CaptureMode.MAX_QUALITY).build();
         final ImageCapture imageCapture = new ImageCapture(imageCaptureConfig);
-
-
+        imageCapture.setFlashMode(FlashMode.ON);
         findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 final File filedirs = new File(getFilesDir() + "/TranslateBraille/");
                 filedirs.mkdirs();
-                File file = new File(filedirs, "photo.jpg");
+                file = new File(filedirs, "photo.jpg");
                 //Toast.makeText(MainActivity.this, file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
                 imageCapture.takePicture(file, new ImageCapture.OnImageSavedListener() {
                     @Override
                     public void onImageSaved(@NonNull File file) {
                         String msg = "Picture saved at " + file.getAbsolutePath();
                         Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        setContentView(R.layout.galllery_main);
-                        imageView = findViewById(R.id.imageView);
-                        imageView.setImageURI(Uri.parse("file://" + file.getAbsolutePath()));
-
+                        Log.d("path", msg);
+                        GalleryActivity();
                     }
 
                     @Override
@@ -163,14 +142,14 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.fabmenu).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                setContentView(R.layout.menu_main);
+                /*setContentView(R.layout.activity_menu);
                 findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Init();
                         StartCamera();
                     }
-                });
+                });*/
             }
         });
 
@@ -200,4 +179,12 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
+
+    public void GalleryActivity()
+    {
+        Intent intent = new Intent(this, GalleryActivity.class);
+        startActivity(intent);
+
+    }
+
 }
