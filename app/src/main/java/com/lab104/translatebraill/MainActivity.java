@@ -1,15 +1,29 @@
 package com.lab104.translatebraill;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Matrix;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorEventListener2;
+import android.hardware.SensorManager;
+import android.net.Uri;
+import android.opengl.GLSurfaceView;
+import android.opengl.GLSurfaceView.Renderer;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
+import android.view.Surface;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -32,159 +46,119 @@ import androidx.core.content.ContextCompat;
 
 
 import java.io.File;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
 
 public class MainActivity extends AppCompatActivity {
-    private static final int REQUEST_CODE_PERMISSIONS = 100;
-    private static String[] REQUEST_PERMISSIONS = new String[]{
-            "android.permission.CAMERA",
-            "android.permission.WRITE_EXTERNAL_STORAGE",
-            "android.permission.READ_EXTERNAL_STORAGE",
-            "android.permission.FLASHLIGHT"
-    };
-    TextureView textureView;
-    public static ViewGroup.LayoutParams params, paramsFrame;
-    Toolbar tbTop, tbBottom;
-    ConstraintLayout constraintLayout;
-    ConstraintSet set;
-    DisplayMetrics dm = new DisplayMetrics();
-    public static File file;
-    public static ImageView frame;
+    public Uri chosenImageUri;
+    public ImageView imageView;
+    Button btnToCamera, btnToUpload;
+    ImageView background;
+    SensorManager sensorManager;
+    Sensor sensorLinAccel;
+    float X = 0,X2;
+    Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSupportActionBar().hide();
-        Init();
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        background = findViewById(R.id.backgroundMain);
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorLinAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        ButttonHandler();
+
     }
 
-    private void Init()
-    {
-        tbTop = findViewById(R.id.toolbarTop);
-        tbBottom = findViewById(R.id.toolbarBottom);
-        textureView = findViewById(R.id.textureView);
-        frame = findViewById(R.id.frame);
-        paramsFrame = frame.getLayoutParams();
-        params = textureView.getLayoutParams();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-        params.width = dm.widthPixels;
-        params.height = (dm.widthPixels*16)/9;
-        Toast.makeText(this, Integer.toString(dm.heightPixels), Toast.LENGTH_SHORT).show();
-        textureView.setLayoutParams(params);
-        paramsFrame.height = (dm.heightPixels - (tbTop.getLayoutParams().height + tbBottom.getLayoutParams().height)) * 80 / 100;
-        frame.setLayoutParams(paramsFrame);
-        if (PermissionGranted())
-        {
-            StartCamera();
-        }
-        else
-        {
-            ActivityCompat.requestPermissions(this,REQUEST_PERMISSIONS,REQUEST_CODE_PERMISSIONS);
-        }
+    private void ButttonHandler() {
+        btnToCamera = findViewById(R.id.btnToCamera);
+        btnToUpload = findViewById(R.id.btnToUpload);
+        btnToCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(),CameraActivity.class);
+                startActivity(intent);
+            }
+        });
+        btnToUpload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/*");
+                startActivityForResult(intent, 1);
+            }
+
+        });
+
+
     }
-
-    private void StartCamera()
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        CameraX.unbindAll();
-        Rational ratio = new Rational(textureView.getWidth(),textureView.getHeight());
-        Size screen = new Size(dm.widthPixels,dm.heightPixels);
+        super.onActivityResult(requestCode, resultCode, data);
 
-        PreviewConfig previewConfig = new PreviewConfig.Builder().setTargetAspectRatio(ratio).setTargetResolution(screen).build();
-        Preview preview = new Preview(previewConfig);
-        preview.setOnPreviewOutputUpdateListener(
-                new Preview.OnPreviewOutputUpdateListener() {
-                    @Override
-                    public void onUpdated(Preview.PreviewOutput output) {
-                        ViewGroup parent = (ViewGroup) textureView.getParent();
-                        parent.removeView(textureView);
-                        parent.addView(textureView,0);
-                        textureView.setSurfaceTexture(output.getSurfaceTexture());
+        if (resultCode == RESULT_OK && requestCode == 1)
+        {
+            chosenImageUri = data.getData();
+            Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
+            intent.putExtra("imageUri",chosenImageUri);
+            startActivity(intent);
 
-
-
-                    }
-                }
-        );
-        ImageCaptureConfig imageCaptureConfig = new ImageCaptureConfig.Builder().
-                setCaptureMode(ImageCapture.CaptureMode.MAX_QUALITY).build();
-        final ImageCapture imageCapture = new ImageCapture(imageCaptureConfig);
-        imageCapture.setFlashMode(FlashMode.ON);
-        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final File filedirs = new File(getFilesDir() + "/TranslateBraille/");
-                filedirs.mkdirs();
-                file = new File(filedirs, "photo.jpg");
-                //Toast.makeText(MainActivity.this, file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-                imageCapture.takePicture(file, new ImageCapture.OnImageSavedListener() {
-                    @Override
-                    public void onImageSaved(@NonNull File file) {
-                        String msg = "Picture saved at " + file.getAbsolutePath();
-                        Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        Log.d("path", msg);
-                        GalleryActivity();
-                    }
-
-                    @Override
-                    public void onError(@NonNull ImageCapture.UseCaseError useCaseError, @NonNull String message, @Nullable Throwable cause) {
-                        String msg = "Picture was not captured: " + message;
-                        Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-                        if (cause != null)
-                        {
-                            cause.printStackTrace();
-                        }
-                    }
-                });
-            }
-        });
-        CameraX.bindToLifecycle(this, preview, imageCapture);
-        findViewById(R.id.fabmenu).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                /*setContentView(R.layout.activity_menu);
-                findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Init();
-                        StartCamera();
-                    }
-                });*/
-            }
-        });
-
+        }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CODE_PERMISSIONS && PermissionGranted())
-        {
-            StartCamera();
-        }
-        else
-        {
-            Toast.makeText(this, "Permission was denied by the user!", Toast.LENGTH_SHORT).show();
-            finish();
-        }
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(listener, sensorLinAccel,
+                SensorManager.SENSOR_DELAY_NORMAL);
     }
 
-    private boolean PermissionGranted() {
-        for (String permission : REQUEST_PERMISSIONS)
-        {
-            if (ContextCompat.checkSelfPermission(this,permission) != PackageManager.PERMISSION_GRANTED)
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(listener);
+    }
+
+
+    SensorEventListener listener = new SensorEventListener() {
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
             {
-                return false;
+                    X = 70*event.values[0];
+                    ChangeBackground();
             }
+
         }
-        return true;
-    }
 
-    public void GalleryActivity()
-    {
-        Intent intent = new Intent(this, GalleryActivity.class);
-        startActivity(intent);
+    };
 
+    private void ChangeBackground() {
+        Log.d("DebugX", String.valueOf(X));
+        if ((int)X!=0 && Math.abs(X)>100)
+            if (X>0)
+            {
+                for (int i=10;i<X;i+=1)
+                    background.setPadding((int)X2+i,0,0,0);
+            }
+        else
+            {
+                for (int i=(int)X2;i>X;i-=1)
+                    background.setPadding((int)X2+i,0,0,0);
+            }
+            X2=X;
     }
 
 }
+
