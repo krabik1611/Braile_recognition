@@ -123,7 +123,6 @@ public class CameraActivity extends AppCompatActivity {
                             fabFlashlight.setRotation(90f);
                             flashlightMenu.setRotation(90f);
                             if (degrees != 90){
-                                degrees = 90;
                                 constraintLayout = findViewById(R.id.layoutparent);
                                 ConstraintSet constraintSet = new ConstraintSet();
                                 constraintSet.clone(constraintLayout);
