@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
+    android:id="@+id/layoutparent"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -95,6 +96,90 @@
         android:fontFamily="@font/coolfonts"
         android:textColor="@android:color/white"
         style="@style/switchabc"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabFlashlight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/toolbarTop"
+        app:layout_constraintBottom_toBottomOf="@id/toolbarTop"
+        android:layout_marginLeft="10dp"
+        app:fabCustomSize="40dp"
+        android:src="@drawable/flashauto"
+        style="@style/fabBlack"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/flashlightMenu"
+        android:layout_width="100dp"
+        android:layout_height="145dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbarTop"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:visibility="visible"
+        android:background="@drawable/clip"
+        >
+
+        <Button
+            android:id="@+id/btnFlashAUTO"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Авто"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:drawableLeft="@drawable/flashauto"
+            android:drawablePadding="5dp"
+            android:background="#00000000"
+            android:paddingLeft="10dp"
+            app:layout_constraintTop_toTopOf="@id/flashlightMenu"
+            app:layout_constraintLeft_toLeftOf="@id/flashlightMenu" />
+
+        <View
+            android:id="@+id/line1"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/line"
+            app:layout_constraintTop_toBottomOf="@id/btnFlashAUTO"
+            app:layout_constraintBottom_toTopOf="@id/btnFlashOFF"/>
+
+        <Button
+            android:id="@+id/btnFlashOFF"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Выкл."
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:drawableLeft="@drawable/flashoff"
+            android:drawablePadding="5dp"
+            android:background="#00000000"
+            android:paddingLeft="10dp"
+            app:layout_constraintTop_toBottomOf="@id/btnFlashAUTO"
+            app:layout_constraintLeft_toLeftOf="@id/flashlightMenu"/>
+
+        <View
+            android:id="@+id/line2"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/line"
+            app:layout_constraintTop_toBottomOf="@id/btnFlashOFF"
+            app:layout_constraintBottom_toTopOf="@id/btnFlashON"/>
+
+        <Button
+            android:id="@+id/btnFlashON"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Вкл."
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:drawableLeft="@drawable/flashon"
+            android:drawablePadding="5dp"
+            android:background="#00000000"
+            android:paddingLeft="10dp"
+            app:layout_constraintTop_toBottomOf="@id/btnFlashOFF"
+            app:layout_constraintLeft_toLeftOf="@id/flashlightMenu"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

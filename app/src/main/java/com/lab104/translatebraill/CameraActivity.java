@@ -4,9 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.transition.TransitionManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Rational;
@@ -15,9 +21,12 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,8 +38,12 @@ import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageCaptureConfig;
 import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,26 +57,111 @@ public class CameraActivity extends AppCompatActivity {
             "android.permission.CAMERA",
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
-            "android.permission.FLASHLIGHT"
+            "android.permission.FLASHLIGHT",
+            "android.permission.INTERNET"
     };
     public static File file;
     public static ImageView frame;
     public static ViewGroup.LayoutParams params, paramsFrame;
+    private SensorManager sensorManager;
+    private Sensor sensorLinAccel, gravity;
+    private ViewGroup flashlightMenu;
+    private FloatingActionButton fabFlashlight;
     private TextureView textureView;
     private DisplayMetrics dm = new DisplayMetrics();
     private Switch netStat;
+    private TextView text;
+    private ImageCapture imageCapture;
+    private ConstraintLayout constraintLayout;
+    private float[] valuesLinAccel = new float[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        gravity = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        sensorLinAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         getSupportActionBar().hide();
         Init();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        sensorManager.registerListener(listener, sensorLinAccel, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(listener, gravity, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorManager.unregisterListener(listener);
+    }
+
+    SensorEventListener listener = new SensorEventListener() {
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            switch (event.sensor.getType()) {
+                case Sensor.TYPE_ACCELEROMETER:
+                    for (int i = 0; i < 3; i++) {
+                        valuesLinAccel[i] = event.values[i];
+                        //Log.i("LinAccel", String.valueOf(valuesLinAccel[1]));
+//                        Log.i("LinAccel", String.valueOf(valuesLinAccel[0]));
+                    }
+                    int degrees = 0;
+                        if (valuesLinAccel[0] >= 9f || (valuesLinAccel[2] <= 9f && valuesLinAccel[1] <= 0f && valuesLinAccel[0] >= 7f))
+                        {
+
+                            fabFlashlight.setRotation(90f);
+                            flashlightMenu.setRotation(90f);
+                            if (degrees != 90){
+                                degrees = 90;
+                                constraintLayout = findViewById(R.id.layoutparent);
+                                ConstraintSet constraintSet = new ConstraintSet();
+                                constraintSet.clone(constraintLayout);
+                                constraintSet.clear(R.id.flashlightMenu,ConstraintSet.LEFT);
+                                constraintSet.clear(R.id.flashlightMenu,ConstraintSet.TOP);
+                                constraintSet.connect(R.id.flashlightMenu,ConstraintSet.TOP,R.id.toolbarTop,ConstraintSet.BOTTOM);
+                                constraintSet.connect(R.id.flashlightMenu,ConstraintSet.LEFT,R.id.textureView,ConstraintSet.LEFT,100);
+                                constraintSet.setMargin(R.id.flashlightMenu,ConstraintSet.LEFT,100);
+                                TransitionManager.beginDelayedTransition(constraintLayout);
+                                constraintSet.applyTo(constraintLayout);
+                            }
+
+                        }
+                        else if (valuesLinAccel[0] <= 1f && valuesLinAccel[0] >= -1f && valuesLinAccel[1] >= 4f)
+                        {
+                            fabFlashlight.setRotation(0f);
+                            flashlightMenu.setRotation(0f);
+                        }
+                        else if (valuesLinAccel[0] <= -9f || (valuesLinAccel[2] <= 9f && valuesLinAccel[1] <= 0f && valuesLinAccel[0] <= -7f))
+                        {
+                            Log.i("LinAccel", valuesLinAccel[0] + "- X " + valuesLinAccel[1] + "- Y " + valuesLinAccel[2] + "- Z ");
+
+                            fabFlashlight.setRotation(-90f);
+                            flashlightMenu.setRotation(-90f);
+                        }
+
+                    break;
+            }
+
+        }
+
+    };
+
     private void Init()
     {
         textureView = findViewById(R.id.textureView);
+        fabFlashlight = findViewById(R.id.fabFlashlight);
+        flashlightMenu = findViewById(R.id.flashlightMenu);
         netStat = findViewById(R.id.netStat);
         frame = findViewById(R.id.frame);
         paramsFrame = frame.getLayoutParams();
@@ -83,6 +181,12 @@ public class CameraActivity extends AppCompatActivity {
         {
             ActivityCompat.requestPermissions(this,REQUEST_PERMISSIONS,REQUEST_CODE_PERMISSIONS);
         }
+        ButtonHandler();
+
+    }
+
+    private void ButtonHandler()
+    {
         netStat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -93,7 +197,7 @@ public class CameraActivity extends AppCompatActivity {
                         compoundButton.setChecked(false);
                     }
                     else
-                        {
+                    {
                         netStat.setText("Online");
                     }
                 }
@@ -103,6 +207,45 @@ public class CameraActivity extends AppCompatActivity {
                 }
             }
         });
+        findViewById(R.id.fabFlashlight).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (flashlightMenu.getVisibility() == View.GONE)
+                {
+                    flashlightMenu.setVisibility(View.VISIBLE);
+                }
+                else
+                {
+                    flashlightMenu.setVisibility(View.GONE);
+                }
+            }
+        });
+        findViewById(R.id.btnFlashAUTO).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fabFlashlight.setImageResource(R.drawable.flashauto);
+                imageCapture.setFlashMode(FlashMode.AUTO);
+                flashlightMenu.setVisibility(View.GONE);
+            }
+        });
+        findViewById(R.id.btnFlashOFF).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fabFlashlight.setImageResource(R.drawable.flashoff);
+                imageCapture.setFlashMode(FlashMode.OFF);
+                flashlightMenu.setVisibility(View.GONE);
+
+            }
+        });
+        findViewById(R.id.btnFlashON).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fabFlashlight.setImageResource(R.drawable.flashon);
+                imageCapture.setFlashMode(FlashMode.ON);
+                flashlightMenu.setVisibility(View.GONE);
+
+            }
+        });
     }
 
     private void StartCamera()
@@ -110,7 +253,6 @@ public class CameraActivity extends AppCompatActivity {
         CameraX.unbindAll();
         Rational ratio = new Rational(textureView.getWidth(),textureView.getHeight());
         Size screen = new Size(dm.widthPixels,dm.heightPixels);
-
         PreviewConfig previewConfig = new PreviewConfig.Builder().setTargetAspectRatio(ratio).setTargetResolution(screen).build();
         Preview preview = new Preview(previewConfig);
         preview.setOnPreviewOutputUpdateListener(
@@ -135,13 +277,13 @@ public class CameraActivity extends AppCompatActivity {
                                 throw new UnsupportedOperationException(
                                         "Unsupported display rotation: " + displayRotation);
                         }
+
                     }
                 }
         );
         ImageCaptureConfig imageCaptureConfig = new ImageCaptureConfig.Builder().
                 setCaptureMode(ImageCapture.CaptureMode.MAX_QUALITY).build();
-        final ImageCapture imageCapture = new ImageCapture(imageCaptureConfig);
-
+        imageCapture = new ImageCapture(imageCaptureConfig);
         findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -176,6 +318,8 @@ public class CameraActivity extends AppCompatActivity {
 
 
     }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
