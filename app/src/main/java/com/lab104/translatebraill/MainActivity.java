@@ -1,5 +1,7 @@
 package com.lab104.translatebraill;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -32,6 +34,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.appcompat.widget.Toolbar;
 import androidx.camera.core.CameraX;
 import androidx.camera.core.FlashMode;
@@ -43,7 +46,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
+import androidx.fragment.app.FragmentManager;
 
 
 import java.io.File;
@@ -63,6 +66,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 
 public class MainActivity extends AppCompatActivity {
+    public static final int START_ACTIVITY_GALLERY = 101;
     public Uri chosenImageUri;
     public ImageView imageView;
     Button btnToCamera, btnToUpload;
@@ -81,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
 //        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 //        sensorLinAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         ButttonHandler();
+
 
     }
 
@@ -114,25 +119,27 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == 1)
         {
             chosenImageUri = data.getData();
-            final int chunkSize = 1024;  // We'll read in one kB at a time
-            byte[] imageData = new byte[chunkSize];
-            try {
-                InputStream in = getContentResolver().openInputStream(chosenImageUri);
-                OutputStream out = new FileOutputStream(new File(getFilesDir() + "/TranslateBraille/" + "photo.jpg"));
-
-                int bytesRead;
-                while ((bytesRead = in.read(imageData)) > 0) {
-                    out.write(Arrays.copyOfRange(imageData, 0, Math.max(0, bytesRead)));
-                }
-                in.close();
-                out.close();
-            } catch (Exception ex) {
-            }
-            Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
+//            final int chunkSize = 1024;  // We'll read in one kB at a time
+//            byte[] imageData = new byte[chunkSize];
+//            try {
+//                InputStream in = getContentResolver().openInputStream(chosenImageUri);
+//                OutputStream out = new FileOutputStream(new File(getFilesDir() + "/TranslateBraille/" + "photo.jpg"));
+//
+//                int bytesRead;
+//                while ((bytesRead = in.read(imageData)) > 0) {
+//                    out.write(Arrays.copyOfRange(imageData, 0, Math.max(0, bytesRead)));
+//                }
+//                in.close();
+//                out.close();
+//            } catch (Exception ex) {
+//            }
+            Intent intent = new Intent(getApplicationContext(),CropActivity.class);
+            intent.putExtra("imageUri",chosenImageUri);
             startActivity(intent);
 
         }
     }
+
 
 //    @Override
 //    protected void onResume() {

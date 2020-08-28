@@ -59,6 +59,9 @@ public class GalleryActivity extends AppCompatActivity {
 
     private void Init() {
         imageView = findViewById(R.id.imageView);
+        Uri uri = (Uri) getIntent().getParcelableExtra("imageToGallery");
+        Log.d("uristring",uri.toString());
+        imageView.setImageURI(uri);
 //        view = findViewById(R.id.imageCrop);
 //        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 //        params = view.getLayoutParams();
@@ -66,19 +69,8 @@ public class GalleryActivity extends AppCompatActivity {
 //        params.height = (displayMetrics.widthPixels*16)/9;
 //        view.setLayoutParams(params);
         //imageView.setLayoutParams(CameraActivity.params);
-        Uri imageUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo.jpg"));
-        Uri destinationUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo1.jpg"));
-        UCrop.Options options = new UCrop.Options();
-        options.setCompressionQuality(100);
-        options.setToolbarColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
-        options.setStatusBarColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
-        options.setActiveControlsWidgetColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
-        options.withAspectRatio(16,9);
-        options.withMaxResultSize(1000,1000);
+//        Uri imageUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo.jpg"));
 
-
-        Log.d("UCROP","тут");
-        UCrop.of(imageUri,destinationUri).withOptions(options).start(this);
 
 //        Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
 
@@ -122,38 +114,7 @@ public class GalleryActivity extends AppCompatActivity {
        // paramsFrame = frame.getLayoutParams();
         //imageView.setLayoutParams(paramsFrame);
     }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case UCrop.REQUEST_CROP:
-                if (resultCode == RESULT_OK) {
-                    handleUCropResult(data);
-                }
-            case 1337:
-                Uri uri = data.getParcelableExtra("path");
-                imageView.setImageURI(uri);
-        }
-    }
 
-    private void handleUCropResult(Intent data) {
-        if (data == null) {
-            setResultCancelled();
-            return;
-        }
-        final Uri resultUri = UCrop.getOutput(data);
-        setResultOk(resultUri);
-    }
-    private void setResultOk(Uri imagePath) {
-        Intent intent = new Intent();
-        intent.putExtra("path", imagePath);
-        Log.d("UCROP","тут");
-        setResult(Activity.RESULT_OK, intent);
-        finish();
-    }
-    private void setResultCancelled() {
-        Intent intent = new Intent();
-        setResult(Activity.RESULT_CANCELED, intent);
-        finish();
-    }
+
+
 }

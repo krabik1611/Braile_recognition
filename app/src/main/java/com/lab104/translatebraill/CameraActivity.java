@@ -1,6 +1,9 @@
 package com.lab104.translatebraill;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -281,19 +284,6 @@ public class CameraActivity extends AppCompatActivity {
                         parent.removeView(textureView);
                         parent.addView(textureView,0);
                         textureView.setSurfaceTexture(output.getSurfaceTexture());
-                        switch (displayRotation) {
-                            case Surface.ROTATION_0:
-                                break;
-                            case Surface.ROTATION_90:
-                                //textureView.setRotation(-90f);
-                                break;
-                            case Surface.ROTATION_270:
-                                //textureView.setRotation(90f);
-                                break;
-                            default:
-                                throw new UnsupportedOperationException(
-                                        "Unsupported display rotation: " + displayRotation);
-                        }
 
                     }
                 }
@@ -307,16 +297,16 @@ public class CameraActivity extends AppCompatActivity {
                 final File filedirs = new File(getFilesDir() + "/TranslateBraille/");
                 filedirs.mkdirs();
                 file = new File(filedirs, "photo.jpg");
-                //Toast.makeText(MainActivity.this, file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
                 imageCapture.takePicture(file, new ImageCapture.OnImageSavedListener() {
                     @Override
                     public void onImageSaved(@NonNull File file) {
                         String msg = "Picture saved at " + file.getAbsolutePath();
                         Toast.makeText(CameraActivity.this, msg, Toast.LENGTH_SHORT).show();
                         Log.d("path", msg);
-                        Intent intent = new Intent(getApplicationContext(), GalleryActivity.class);
-                        intent.putExtra("imageUri", Uri.parse(file.getAbsolutePath()));
-                        startActivity(intent);
+                        Intent intent = new Intent(getApplicationContext(), CropActivity.class);
+                        intent.putExtra("imageUri", Uri.fromFile(file));
+                        startActivityForResult(intent,MainActivity.START_ACTIVITY_GALLERY);
+
                     }
 
                     @Override
@@ -386,4 +376,19 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == MainActivity.START_ACTIVITY_GALLERY)
+        {
+            if (resultCode == Activity.RESULT_OK)
+            {
+                Uri uri = data.getParcelableExtra("path");
+                Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
+                intent.putExtra("imageToGallery",uri);
+                startActivity(intent);
+
+            }
+        }
+    }
 }

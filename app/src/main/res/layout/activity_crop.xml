@@ -4,10 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GalleryActivity">
+    tools:context=".CropActivity">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+    <fragment
+        android:id="@+id/fragment_container"
+        android:name="com.yalantis.ucrop.UCropFragment"
+        android:layout_width="204dp"
+        android:layout_height="198dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
