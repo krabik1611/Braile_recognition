@@ -47,6 +47,14 @@ import androidx.core.content.ContextCompat;
 
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -62,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
     SensorManager sensorManager;
     Sensor sensorLinAccel;
     float X = 0,X2;
-    Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,8 +114,21 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK && requestCode == 1)
         {
             chosenImageUri = data.getData();
+            final int chunkSize = 1024;  // We'll read in one kB at a time
+            byte[] imageData = new byte[chunkSize];
+            try {
+                InputStream in = getContentResolver().openInputStream(chosenImageUri);
+                OutputStream out = new FileOutputStream(new File(getFilesDir() + "/TranslateBraille/" + "photo.jpg"));
+
+                int bytesRead;
+                while ((bytesRead = in.read(imageData)) > 0) {
+                    out.write(Arrays.copyOfRange(imageData, 0, Math.max(0, bytesRead)));
+                }
+                in.close();
+                out.close();
+            } catch (Exception ex) {
+            }
             Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
-            intent.putExtra("imageUri",chosenImageUri);
             startActivity(intent);
 
         }

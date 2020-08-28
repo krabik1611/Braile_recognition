@@ -1,18 +1,26 @@
 package com.lab104.translatebraill;
 
+import androidx.annotation.DrawableRes;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Matrix;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Layout;
 import android.util.DisplayMetrics;
@@ -21,14 +29,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.yalantis.ucrop.UCrop;
+import com.yalantis.ucrop.UCropFragment;
+import com.yalantis.ucrop.model.AspectRatio;
+import com.yalantis.ucrop.view.CropImageView;
+import com.yalantis.ucrop.view.UCropView;
+
 
 import java.io.File;
 
 public class GalleryActivity extends AppCompatActivity {
-    ImageView imageView, frame;
-    LayoutParams params;
+    private static final int REQUEST_SELECT_PICTURE_FOR_FRAGMENT = 0x02;
+    private final int RESULT_OK = 96;
     DisplayMetrics displayMetrics = new DisplayMetrics();
+    ImageView imageView;
 
 
     @Override
@@ -39,44 +56,50 @@ public class GalleryActivity extends AppCompatActivity {
 
     }
 
+
     private void Init() {
-        imageView = findViewById(R.id.imageCrop);
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        params = imageView.getLayoutParams();
-        params.width = displayMetrics.widthPixels;
-        params.height = (displayMetrics.widthPixels*16)/9;
-        imageView.setLayoutParams(params);
+        imageView = findViewById(R.id.imageView);
+//        view = findViewById(R.id.imageCrop);
+//        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//        params = view.getLayoutParams();
+//        params.width = displayMetrics.widthPixels;
+//        params.height = (displayMetrics.widthPixels*16)/9;
+//        view.setLayoutParams(params);
         //imageView.setLayoutParams(CameraActivity.params);
-        Bundle extras = getIntent().getExtras();
-        Uri imageUri = null;
+        Uri imageUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo.jpg"));
+        Uri destinationUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo1.jpg"));
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionQuality(100);
+        options.setToolbarColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
+        options.setStatusBarColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
+        options.setActiveControlsWidgetColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
+        options.withAspectRatio(16,9);
+        options.withMaxResultSize(1000,1000);
 
-        if (extras != null) {
-            imageUri = (Uri) extras.get("imageUri");
-            imageView.setImageURI(imageUri);
-        }
 
-        Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+        Log.d("UCROP","тут");
+        UCrop.of(imageUri,destinationUri).withOptions(options).start(this);
 
+//        Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
 
-
-        int width =(int) (bitmap.getHeight()*9/16);
-        int height =(int) (width*Math.sqrt(2));
-        int x = (bitmap.getWidth() - width)/2;
-        int y =(int) ((bitmap.getHeight() - height)/3f);
-        Log.i("logging1",width + " - ширина " + height + " - высота");
-//        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, params.width, (params.width*4/3), true);
-//        Log.d("debugURI",scaledBitmap.getWidth() + " - ширина" + scaledBitmap.getHeight() + " - высота");
-//        imageView.setImageBitmap(scaledBitmap);
-        //imageView.setLayoutParams(params);
-        //imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        Log.i("loging", String.format("Total memory = %s",
-                (int) (Runtime.getRuntime().totalMemory() / 1024)));
-
-        Bitmap bitmapClip = bitmap.createBitmap(width, height, Config.ARGB_8888);
-        int[] pixels = new int[width * height];
-        bitmap.getPixels(pixels,0,width,x,y,width,height);
-        bitmapClip.setPixels(pixels,0,width,0,0,width,height);
-        imageView.setImageBitmap(bitmapClip);
+//        int width =(int) (bitmap.getHeight()*9/16);
+//        int height =(int) (width*Math.sqrt(2));
+//        int x = (bitmap.getWidth() - width)/2;
+//        int y =(int) ((bitmap.getHeight() - height)/3f);
+//        Log.i("logging1",width + " - ширина " + height + " - высота");
+////        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, params.width, (params.width*4/3), true);
+////        Log.d("debugURI",scaledBitmap.getWidth() + " - ширина" + scaledBitmap.getHeight() + " - высота");
+////        imageView.setImageBitmap(scaledBitmap);
+//        //imageView.setLayoutParams(params);
+//        //imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+//        Log.i("loging", String.format("Total memory = %s",
+//                (int) (Runtime.getRuntime().totalMemory() / 1024)));
+//
+//        Bitmap bitmapClip = bitmap.createBitmap(width, height, Config.ARGB_8888);
+//        int[] pixels = new int[width * height];
+//        bitmap.getPixels(pixels,0,width,x,y,width,height);
+//        bitmapClip.setPixels(pixels,0,width,0,0,width,height);
+//        imageView.setImageBitmap(bitmapClip);
 //        Log.d("debugBITMAP",bitmapClip.getWidth() + " - ширина" + bitmapClip.getHeight() + " - высота");
 //        Bitmap bitmap =  ((BitmapDrawable) imageView.getDrawable()).getBitmap();
 //        int pixelsclipHeight = CameraActivity.params.height - CameraActivity.paramsFrame.height;
@@ -98,5 +121,39 @@ public class GalleryActivity extends AppCompatActivity {
 
        // paramsFrame = frame.getLayoutParams();
         //imageView.setLayoutParams(paramsFrame);
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case UCrop.REQUEST_CROP:
+                if (resultCode == RESULT_OK) {
+                    handleUCropResult(data);
+                }
+            case 1337:
+                Uri uri = data.getParcelableExtra("path");
+                imageView.setImageURI(uri);
+        }
+    }
+
+    private void handleUCropResult(Intent data) {
+        if (data == null) {
+            setResultCancelled();
+            return;
+        }
+        final Uri resultUri = UCrop.getOutput(data);
+        setResultOk(resultUri);
+    }
+    private void setResultOk(Uri imagePath) {
+        Intent intent = new Intent();
+        intent.putExtra("path", imagePath);
+        Log.d("UCROP","тут");
+        setResult(Activity.RESULT_OK, intent);
+        finish();
+    }
+    private void setResultCancelled() {
+        Intent intent = new Intent();
+        setResult(Activity.RESULT_CANCELED, intent);
+        finish();
     }
 }

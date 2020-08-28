@@ -73,7 +73,9 @@ public class CameraActivity extends AppCompatActivity {
     private TextView text;
     private ImageCapture imageCapture;
     private ConstraintLayout constraintLayout;
+    private ConstraintSet constraintSet;
     private float[] valuesLinAccel = new float[3];
+    private int degrees = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,37 +118,47 @@ public class CameraActivity extends AppCompatActivity {
                         //Log.i("LinAccel", String.valueOf(valuesLinAccel[1]));
 //                        Log.i("LinAccel", String.valueOf(valuesLinAccel[0]));
                     }
-                    int degrees = 0;
-                        if (valuesLinAccel[0] >= 9f || (valuesLinAccel[2] <= 9f && valuesLinAccel[1] <= 0f && valuesLinAccel[0] >= 7f))
+                        if (degrees != 90 && (valuesLinAccel[0] >= 9f || (valuesLinAccel[2] <= 9f && valuesLinAccel[1] <= 0f && valuesLinAccel[0] >= 7f)))
                         {
+                            degrees = 90;
 
                             fabFlashlight.setRotation(90f);
                             flashlightMenu.setRotation(90f);
-                            if (degrees != 90){
-                                constraintLayout = findViewById(R.id.layoutparent);
-                                ConstraintSet constraintSet = new ConstraintSet();
-                                constraintSet.clone(constraintLayout);
-                                constraintSet.clear(R.id.flashlightMenu,ConstraintSet.LEFT);
-                                constraintSet.clear(R.id.flashlightMenu,ConstraintSet.TOP);
-                                constraintSet.connect(R.id.flashlightMenu,ConstraintSet.TOP,R.id.toolbarTop,ConstraintSet.BOTTOM);
-                                constraintSet.connect(R.id.flashlightMenu,ConstraintSet.LEFT,R.id.textureView,ConstraintSet.LEFT,100);
-                                constraintSet.setMargin(R.id.flashlightMenu,ConstraintSet.LEFT,100);
-                                TransitionManager.beginDelayedTransition(constraintLayout);
-                                constraintSet.applyTo(constraintLayout);
-                            }
+                            constraintSet = new ConstraintSet();
+                            constraintSet.clone(constraintLayout);
+                            constraintSet.clear(R.id.flashlightMenu,ConstraintSet.LEFT);
+                            constraintSet.clear(R.id.flashlightMenu,ConstraintSet.TOP);
+                            constraintSet.connect(R.id.flashlightMenu,ConstraintSet.TOP,R.id.toolbarTop,ConstraintSet.BOTTOM);
+                            constraintSet.connect(R.id.flashlightMenu,ConstraintSet.LEFT,R.id.layoutparent,ConstraintSet.LEFT,100);
+                            constraintSet.applyTo(constraintLayout);
 
                         }
-                        else if (valuesLinAccel[0] <= 1f && valuesLinAccel[0] >= -1f && valuesLinAccel[1] >= 4f)
+                        else if (degrees != 0 && (valuesLinAccel[0] <= 1f && valuesLinAccel[0] >= -1f && valuesLinAccel[1] >= 4f))
                         {
+                            degrees = 0;
                             fabFlashlight.setRotation(0f);
                             flashlightMenu.setRotation(0f);
-                        }
-                        else if (valuesLinAccel[0] <= -9f || (valuesLinAccel[2] <= 9f && valuesLinAccel[1] <= 0f && valuesLinAccel[0] <= -7f))
-                        {
-                            Log.i("LinAccel", valuesLinAccel[0] + "- X " + valuesLinAccel[1] + "- Y " + valuesLinAccel[2] + "- Z ");
+                            constraintSet = new ConstraintSet();
+                            constraintSet.clone(constraintLayout);
+                            constraintSet.clear(R.id.flashlightMenu,ConstraintSet.LEFT);
+                            constraintSet.clear(R.id.flashlightMenu,ConstraintSet.TOP);
+                            constraintSet.connect(R.id.flashlightMenu,ConstraintSet.TOP,R.id.toolbarTop,ConstraintSet.BOTTOM,20);
+                            constraintSet.connect(R.id.flashlightMenu,ConstraintSet.LEFT,R.id.layoutparent,ConstraintSet.LEFT,20);
+                            constraintSet.applyTo(constraintLayout);
 
+                        }
+                        else if (degrees != -90 && (valuesLinAccel[0] <= -9f || (valuesLinAccel[2] <= 9f && valuesLinAccel[1] <= 0f && valuesLinAccel[0] <= -7f)))
+                        {
+                            degrees = -90;
                             fabFlashlight.setRotation(-90f);
                             flashlightMenu.setRotation(-90f);
+                            constraintSet = new ConstraintSet();
+                            constraintSet.clone(constraintLayout);
+                            constraintSet.clear(R.id.flashlightMenu,ConstraintSet.LEFT);
+                            constraintSet.clear(R.id.flashlightMenu,ConstraintSet.TOP);
+                            constraintSet.connect(R.id.flashlightMenu,ConstraintSet.TOP,R.id.toolbarTop,ConstraintSet.BOTTOM);
+                            constraintSet.connect(R.id.flashlightMenu,ConstraintSet.LEFT,R.id.layoutparent,ConstraintSet.LEFT,100);
+                            constraintSet.applyTo(constraintLayout);
                         }
 
                     break;
@@ -159,10 +171,16 @@ public class CameraActivity extends AppCompatActivity {
     private void Init()
     {
         textureView = findViewById(R.id.textureView);
+        constraintLayout = findViewById(R.id.layoutparent);
         fabFlashlight = findViewById(R.id.fabFlashlight);
         flashlightMenu = findViewById(R.id.flashlightMenu);
         netStat = findViewById(R.id.netStat);
         frame = findViewById(R.id.frame);
+        constraintSet = new ConstraintSet();
+        constraintSet.clone(constraintLayout);
+        constraintSet.connect(R.id.flashlightMenu,ConstraintSet.TOP,R.id.toolbarTop,ConstraintSet.BOTTOM,20);
+        constraintSet.connect(R.id.flashlightMenu,ConstraintSet.LEFT,R.id.layoutparent,ConstraintSet.LEFT,20);
+        constraintSet.applyTo(constraintLayout);
         paramsFrame = frame.getLayoutParams();
         params = textureView.getLayoutParams();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
