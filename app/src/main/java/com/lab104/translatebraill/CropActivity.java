@@ -1,18 +1,39 @@
 package com.lab104.translatebraill;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDialogFragment;
+import androidx.appcompat.app.WindowDecorActionBar;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Animatable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.UCropActivity;
@@ -22,19 +43,36 @@ import com.yalantis.ucrop.view.UCropView;
 
 import java.io.File;
 
-public class CropActivity extends AppCompatActivity implements UCropFragmentCallback {
+public class CropActivity extends AppCompatActivity {
+
+    UCropFragment fragment;
+    UCrop uCrop;
+    private boolean mShowLoader;
+
+    Toolbar toolbar;
+    private String mToolbarTitle;
+    @DrawableRes
+    private int mToolbarCancelDrawable;
+    @DrawableRes
+    private int mToolbarCropDrawable;
+    // Enables dynamic coloring
+    private int mToolbarColor;
+    private int mStatusBarColor;
+    private int mToolbarWidgetColor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_crop);
         Init();
     }
 
     private void Init() {
+        toolbar = findViewById(R.id.toolbar);
         Uri imageUri = (Uri) getIntent().getParcelableExtra("imageUri");
         Uri destinationUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo1.jpg"));
         UCrop.Options options = new UCrop.Options();
-        UCrop uCrop = UCrop.of(imageUri,destinationUri);
+        uCrop = UCrop.of(imageUri,destinationUri);
         options.setCompressionQuality(100);
         options.setToolbarColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
         options.setStatusBarColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
@@ -42,37 +80,20 @@ public class CropActivity extends AppCompatActivity implements UCropFragmentCall
         options.withAspectRatio(1,(int) Math.sqrt(2));
         options.setFreeStyleCropEnabled(true);
         uCrop.withOptions(options);
-        UCropFragment fragment = uCrop.getFragment(uCrop.getIntent(this).getExtras());
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragment_container, fragment, UCropFragment.TAG)
-                .commitAllowingStateLoss();
-        uCrop.start(CropActivity.this,fragment);
-        new AlertDialog.Builder(fragment.getActivity())
-                .setTitle("Delete entry")
-                .setMessage("Are you sure you want to delete this entry?")
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
-                })
-                .setNegativeButton(android.R.string.no, null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+        uCrop.start(CropActivity.this);
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case UCrop.REQUEST_CROP:
-                if (resultCode == RESULT_OK) {
 
-
-                    handleUCropResult(data);
-                }
-                else
-                {
-                    setResultCancelled();
-                }
+        if (requestCode == UCrop.REQUEST_CROP)
+        {
+            if (resultCode==RESULT_OK)
+            {
+                handleUCropResult(data);
+            }
         }
     }
 
@@ -96,13 +117,4 @@ public class CropActivity extends AppCompatActivity implements UCropFragmentCall
         finish();
     }
 
-    @Override
-    public void loadingProgress(boolean showLoader) {
-
-    }
-
-    @Override
-    public void onCropFinish(UCropFragment.UCropResult result) {
-
-    }
 }
