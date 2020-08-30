@@ -6,9 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".CropActivity">
 
-    <fragment
+    <FrameLayout
         android:id="@+id/fragment_container"
-        android:name="com.yalantis.ucrop.UCropFragment"
-        android:layout_width="204dp"
-        android:layout_height="198dp" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
