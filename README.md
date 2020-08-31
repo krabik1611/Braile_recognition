@@ -47,7 +47,7 @@
 `pip install matplotlib`  
 
 Для запуска кода нужно запустить  
-`Python_code/preprocessing/processing_string.py` 
+`Python_code/preprocessing/main.py` 
 
 На данный момент данное решение просто заделяет изображение на символы. Остальной функцианал добавиться позже.
 ### Java:
