@@ -39,6 +39,9 @@ import com.yalantis.ucrop.view.CropImageView;
 import com.yalantis.ucrop.view.UCropView;
 
 
+import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
+
 import java.io.File;
 
 public class GalleryActivity extends AppCompatActivity {
@@ -60,8 +63,12 @@ public class GalleryActivity extends AppCompatActivity {
     private void Init() {
         imageView = findViewById(R.id.imageView);
         Uri uri = (Uri) getIntent().getParcelableExtra("imageToGallery");
-        Log.d("uristring",uri.toString());
         imageView.setImageURI(uri);
+//        FindSymbol findSymbol = new FindSymbol();
+//        findSymbol.init("/data/data/com.lab104.translatebraill/files");
+//        String path = (String) getIntent().getStringExtra("imageToGallery");
+//        File file = new File(path + "/TranslateBraille/" + "photo.jpg");
+//        Mat Image = Imgcodecs.imread("/storage/sdcard0/photo.jpg");
 //        view = findViewById(R.id.imageCrop);
 //        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 //        params = view.getLayoutParams();

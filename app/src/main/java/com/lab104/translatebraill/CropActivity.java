@@ -25,14 +25,13 @@ public class CropActivity extends AppCompatActivity {
 
     private void Init() {
         Uri imageUri = getIntent().getParcelableExtra("imageUri");
-        Uri destinationUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo1.jpg"));
+        Uri destinationUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo.jpg"));
         UCrop.Options options = new UCrop.Options();
         uCrop = UCrop.of(imageUri,destinationUri);
         options.setCompressionQuality(100);
         options.setToolbarColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
         options.setStatusBarColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
         options.setActiveControlsWidgetColor(ContextCompat.getColor(this, R.color.Мусульманский_зелёный));
-        options.withAspectRatio(1,(int) Math.sqrt(2));
         options.setFreeStyleCropEnabled(true);
         uCrop.withOptions(options);
         uCrop.start(CropActivity.this);
@@ -49,6 +48,15 @@ public class CropActivity extends AppCompatActivity {
             {
                 handleUCropResult(data);
             }
+            else
+            {
+                finish();
+            }
+
+        }
+        else
+        {
+            finish();
         }
     }
 
@@ -61,14 +69,16 @@ public class CropActivity extends AppCompatActivity {
         setResultOk(resultUri);
     }
     private void setResultOk(Uri imagePath) {
-        Intent intent = new Intent();
-        intent.putExtra("path", imagePath);
-        setResult(Activity.RESULT_OK, intent);
+        Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
+        intent.putExtra("imageToGallery",imagePath);
+        startActivity(intent);
         finish();
+
+
     }
     private void setResultCancelled() {
-        Intent intent = new Intent();
-        setResult(Activity.RESULT_CANCELED, intent);
+        Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
+        startActivity(intent);
         finish();
     }
 

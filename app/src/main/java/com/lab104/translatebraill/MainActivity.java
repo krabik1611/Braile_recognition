@@ -11,6 +11,8 @@ import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.opencv.android.OpenCVLoader;
+
 
 public class MainActivity extends AppCompatActivity {
     public static final int START_ACTIVITY_GALLERY = 101;
@@ -18,6 +20,10 @@ public class MainActivity extends AppCompatActivity {
     private Uri chosenImageUri;
     private Button btnToCamera, btnToUpload;
     private ImageView background;
+
+    static {
+        OpenCVLoader.initDebug();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,15 +69,19 @@ public class MainActivity extends AppCompatActivity {
             chosenImageUri = data.getData();
             Intent intent = new Intent(getApplicationContext(),CropActivity.class);
             intent.putExtra("imageUri",chosenImageUri);
-            startActivityForResult(intent,START_ACTIVITY_GALLERY);
+            startActivity(intent);
 
         }
         else if (resultCode == RESULT_OK && requestCode == START_ACTIVITY_GALLERY)
         {
-            Uri uri = data.getParcelableExtra("path");
-            Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
-            intent.putExtra("imageToGallery",uri);
-            startActivity(intent);
+
+//            String string = data.getStringExtra("path");
+//            FindSymbol findSymbol = new FindSymbol();
+//            findSymbol.init(string);
+//            Uri uri = data.getStringExtra("path");
+//            Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
+//            intent.putExtra("imageToGallery",uri);
+//            startActivity(intent);
         }
     }
 

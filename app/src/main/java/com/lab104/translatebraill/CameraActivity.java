@@ -183,20 +183,15 @@ public class CameraActivity extends AppCompatActivity {
         fabFlashlight = findViewById(R.id.fabFlashlight);
         flashlightMenu = findViewById(R.id.flashlightMenu);
         netStat = findViewById(R.id.netStat);
-        frame = findViewById(R.id.frame);
 
         constraintSet = new ConstraintSet();
         constraintSet.clone(constraintLayout);
         constraintSet.connect(R.id.flashlightMenu,ConstraintSet.TOP,R.id.toolbarTop,ConstraintSet.BOTTOM,20);
         constraintSet.connect(R.id.flashlightMenu,ConstraintSet.LEFT,R.id.layoutparent,ConstraintSet.LEFT,20);
         constraintSet.applyTo(constraintLayout);
-        paramsFrame = frame.getLayoutParams();
 
 
-        Toast.makeText(this, Integer.toString(dm.heightPixels), Toast.LENGTH_SHORT).show();
         textureView.setLayoutParams(params);
-        paramsFrame.height = (int)(dm.widthPixels * Math.sqrt(2));
-        frame.setLayoutParams(paramsFrame);
         if (PermissionGranted())
         {
             StartCamera();
@@ -307,7 +302,7 @@ public class CameraActivity extends AppCompatActivity {
                         Log.d("path", msg);
                         Intent intent = new Intent(getApplicationContext(), CropActivity.class);
                         intent.putExtra("imageUri", Uri.fromFile(file));
-                        startActivityForResult(intent,MainActivity.START_ACTIVITY_GALLERY);
+                        startActivity(intent);
 
                     }
 
@@ -385,10 +380,15 @@ public class CameraActivity extends AppCompatActivity {
         {
             if (resultCode == Activity.RESULT_OK)
             {
-                Uri uri = data.getParcelableExtra("path");
-                Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
-                intent.putExtra("imageToGallery",uri);
-                startActivity(intent);
+                Log.d("debugOK","OK");
+//                String string = data.getStringExtra("path");
+//                FindSymbol findSymbol = new FindSymbol();
+//                findSymbol.init(string);
+//                Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
+//                startActivity(intent);
+//                Intent intent = new Intent(getApplicationContext(),GalleryActivity.class);
+//                intent.putExtra("imageToGallery",string);
+//                startActivity(intent);
 
             }
         }
