@@ -36,15 +36,15 @@
 
 ### Python:
 Для нормальной работы кода, надо установить необходимые библиотеки.  
-**numpy**:
+**numpy**:    
 'pip install nupmy'
-**opencv**:
+**opencv**:  
 Для deb дистрибутивов:  
-'sudo apt-get install python3-opencv'  
+'sudo apt-get install python3-opencv'    
 Для Arch дистрибутивов:  
-'sudo pacman -S opencv'
-**matplotlib**:
-'pip install matplotlib'
+'sudo pacman -S opencv'  
+**matplotlib**:  
+'pip install matplotlib'  
 
 ### Java:
 **Компиляция Java кода под Android**: Gradle
