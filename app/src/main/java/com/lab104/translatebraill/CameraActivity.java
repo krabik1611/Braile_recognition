@@ -1,13 +1,10 @@
 package com.lab104.translatebraill;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -15,26 +12,23 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.transition.TransitionManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Rational;
 import android.util.Size;
-import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.camera.core.CameraX;
 import androidx.camera.core.FlashMode;
 import androidx.camera.core.ImageCapture;
@@ -65,19 +59,19 @@ public class CameraActivity extends AppCompatActivity {
     };
     public static File file;
     public static ImageView frame;
-    public static ViewGroup.LayoutParams params, paramsFrame;
+    public static ViewGroup.LayoutParams params, paramsFrame, paramsTB;
+    private Toolbar tbTop, tbBottom;
     private SensorManager sensorManager;
-    private Sensor sensorLinAccel, gravity;
+    private Sensor sensorAccel;
     private ViewGroup flashlightMenu;
     private FloatingActionButton fabFlashlight;
     private TextureView textureView;
     private DisplayMetrics dm = new DisplayMetrics();
     private Switch netStat;
-    private TextView text;
     private ImageCapture imageCapture;
     private ConstraintLayout constraintLayout;
     private ConstraintSet constraintSet;
-    private float[] valuesLinAccel = new float[3];
+    private float[] valuesAccel = new float[3];
     private int degrees = 0;
 
     @Override
@@ -85,8 +79,7 @@ public class CameraActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        gravity = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
-        sensorLinAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        sensorAccel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         getSupportActionBar().hide();
@@ -96,8 +89,7 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        sensorManager.registerListener(listener, sensorLinAccel, SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(listener, gravity, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(listener, sensorAccel, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
@@ -117,11 +109,9 @@ public class CameraActivity extends AppCompatActivity {
             switch (event.sensor.getType()) {
                 case Sensor.TYPE_ACCELEROMETER:
                     for (int i = 0; i < 3; i++) {
-                        valuesLinAccel[i] = event.values[i];
-                        //Log.i("LinAccel", String.valueOf(valuesLinAccel[1]));
-//                        Log.i("LinAccel", String.valueOf(valuesLinAccel[0]));
+                        valuesAccel[i] = event.values[i];
                     }
-                        if (degrees != 90 && (valuesLinAccel[0] >= 9f || (valuesLinAccel[2] <= 9f && valuesLinAccel[1] <= 0f && valuesLinAccel[0] >= 7f)))
+                        if (degrees != 90 && (valuesAccel[0] >= 9f || (valuesAccel[2] <= 9f && valuesAccel[1] <= 0f && valuesAccel[0] >= 7f)))
                         {
                             degrees = 90;
 
@@ -136,7 +126,7 @@ public class CameraActivity extends AppCompatActivity {
                             constraintSet.applyTo(constraintLayout);
 
                         }
-                        else if (degrees != 0 && (valuesLinAccel[0] <= 1f && valuesLinAccel[0] >= -1f && valuesLinAccel[1] >= 4f))
+                        else if (degrees != 0 && (valuesAccel[0] <= 1f && valuesAccel[0] >= -1f && valuesAccel[1] >= 4f))
                         {
                             degrees = 0;
                             fabFlashlight.setRotation(0f);
@@ -150,7 +140,7 @@ public class CameraActivity extends AppCompatActivity {
                             constraintSet.applyTo(constraintLayout);
 
                         }
-                        else if (degrees != -90 && (valuesLinAccel[0] <= -9f || (valuesLinAccel[2] <= 9f && valuesLinAccel[1] <= 0f && valuesLinAccel[0] <= -7f)))
+                        else if (degrees != -90 && (valuesAccel[0] <= -9f || (valuesAccel[2] <= 9f && valuesAccel[1] <= 0f && valuesAccel[0] <= -7f)))
                         {
                             degrees = -90;
                             fabFlashlight.setRotation(-90f);
@@ -174,21 +164,35 @@ public class CameraActivity extends AppCompatActivity {
     private void Init()
     {
         textureView = findViewById(R.id.textureView);
+        params = textureView.getLayoutParams();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        params.width = dm.widthPixels;
+        params.height = (dm.widthPixels*16)/9;
+
+        tbTop = findViewById(R.id.toolbarTop);
+        paramsTB = tbTop.getLayoutParams();
+        paramsTB.height = (dm.heightPixels - params.height) / 2;
+        tbTop.setLayoutParams(paramsTB);
+
+        tbBottom = findViewById(R.id.toolbarBottom);
+        paramsTB = tbBottom.getLayoutParams();
+        paramsTB.height = (dm.heightPixels - params.height) / 2;
+        tbBottom.setLayoutParams(paramsTB);
+
         constraintLayout = findViewById(R.id.layoutparent);
         fabFlashlight = findViewById(R.id.fabFlashlight);
         flashlightMenu = findViewById(R.id.flashlightMenu);
         netStat = findViewById(R.id.netStat);
         frame = findViewById(R.id.frame);
+
         constraintSet = new ConstraintSet();
         constraintSet.clone(constraintLayout);
         constraintSet.connect(R.id.flashlightMenu,ConstraintSet.TOP,R.id.toolbarTop,ConstraintSet.BOTTOM,20);
         constraintSet.connect(R.id.flashlightMenu,ConstraintSet.LEFT,R.id.layoutparent,ConstraintSet.LEFT,20);
         constraintSet.applyTo(constraintLayout);
         paramsFrame = frame.getLayoutParams();
-        params = textureView.getLayoutParams();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-        params.width = dm.widthPixels;
-        params.height = (dm.widthPixels*16)/9;
+
+
         Toast.makeText(this, Integer.toString(dm.heightPixels), Toast.LENGTH_SHORT).show();
         textureView.setLayoutParams(params);
         paramsFrame.height = (int)(dm.widthPixels * Math.sqrt(2));
@@ -279,7 +283,6 @@ public class CameraActivity extends AppCompatActivity {
                 new Preview.OnPreviewOutputUpdateListener() {
                     @Override
                     public void onUpdated(Preview.PreviewOutput output) {
-                        int displayRotation = getWindowManager().getDefaultDisplay().getRotation();
                         ViewGroup parent = (ViewGroup) textureView.getParent();
                         parent.removeView(textureView);
                         parent.addView(textureView,0);
@@ -301,7 +304,6 @@ public class CameraActivity extends AppCompatActivity {
                     @Override
                     public void onImageSaved(@NonNull File file) {
                         String msg = "Picture saved at " + file.getAbsolutePath();
-                        Toast.makeText(CameraActivity.this, msg, Toast.LENGTH_SHORT).show();
                         Log.d("path", msg);
                         Intent intent = new Intent(getApplicationContext(), CropActivity.class);
                         intent.putExtra("imageUri", Uri.fromFile(file));

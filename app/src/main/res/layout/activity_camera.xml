@@ -14,10 +14,10 @@
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:background="@drawable/frame"
-        android:layout_marginTop="50dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbarTop" />
+        app:layout_constraintTop_toBottomOf="@id/toolbarTop"
+        app:layout_constraintBottom_toTopOf="@id/toolbarBottom"/>
 
 
     <TextureView
@@ -114,7 +114,7 @@
         android:id="@+id/flashlightMenu"
         android:layout_width="100dp"
         android:layout_height="145dp"
-        android:visibility="visible"
+        android:visibility="gone"
         android:background="@drawable/clip"
         >
 

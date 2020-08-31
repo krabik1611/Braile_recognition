@@ -1,64 +1,20 @@
 package com.lab104.translatebraill;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDialogFragment;
-import androidx.appcompat.app.WindowDecorActionBar;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
-
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Animatable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.yalantis.ucrop.UCrop;
-import com.yalantis.ucrop.UCropActivity;
-import com.yalantis.ucrop.UCropFragment;
-import com.yalantis.ucrop.UCropFragmentCallback;
-import com.yalantis.ucrop.view.UCropView;
 
 import java.io.File;
 
 public class CropActivity extends AppCompatActivity {
-
-    UCropFragment fragment;
-    UCrop uCrop;
-    private boolean mShowLoader;
-
-    Toolbar toolbar;
-    private String mToolbarTitle;
-    @DrawableRes
-    private int mToolbarCancelDrawable;
-    @DrawableRes
-    private int mToolbarCropDrawable;
-    // Enables dynamic coloring
-    private int mToolbarColor;
-    private int mStatusBarColor;
-    private int mToolbarWidgetColor;
+    private UCrop uCrop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +24,7 @@ public class CropActivity extends AppCompatActivity {
     }
 
     private void Init() {
-        toolbar = findViewById(R.id.toolbar);
-        Uri imageUri = (Uri) getIntent().getParcelableExtra("imageUri");
+        Uri imageUri = getIntent().getParcelableExtra("imageUri");
         Uri destinationUri = Uri.fromFile(new File(getFilesDir() + "/TranslateBraille/" + "photo1.jpg"));
         UCrop.Options options = new UCrop.Options();
         uCrop = UCrop.of(imageUri,destinationUri);
